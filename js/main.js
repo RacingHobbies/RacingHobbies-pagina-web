@@ -3341,10 +3341,11 @@
         };
         positionProgressBar();
 
-        // Margen de salida proporcional: 120px sobre un viewport ancho, pero en
-        // un móvil de 390px esa cifra fija se comía un tercio de la pantalla y
-        // la última tarjeta quedaba a media altura al final del recorrido.
-        const tailGap = () => Math.min(120, Math.round(window.innerWidth * 0.1));
+        // En móvil el último borde debe cerrar el carril: incluso un 10vw de
+        // margen dejaba un hueco tras la ficha final que parecía otra tarjeta
+        // vacía. El remate cinematográfico se conserva únicamente en escritorio.
+        const tailGap = () =>
+          window.innerWidth <= 899 ? 0 : Math.min(120, Math.round(window.innerWidth * 0.1));
         const distance = () =>
           Math.max(0, track.scrollWidth - window.innerWidth + tailGap());
         if (distance() < 300) {
