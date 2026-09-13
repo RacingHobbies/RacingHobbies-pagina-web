@@ -20252,50 +20252,52 @@ html.rh-hero-in body.rh-intro-running .header-actions {
   }
 }
 
-
 /* ===========================================================================
-   V66 — LA TEXTURA DEL SECTOR ENTRA FUNDIDA (de verdad)
+   V64 - LA TEXTURA DEL SECTOR ENTRA FUNDIDA
    La compuerta `.atmo-on` (V48) evita descargar ~870 KB de textura durante el
-   primer pintado, pero lo que abría era un `background-image` de la propia
-   sección, y `background-image` no admite transición: la foto pasaba de no
-   estar a estar entre dos fotogramas. Medido en la navegación a catálogo, el
+   primer pintado, pero lo que abria era un `background-image` de la propia
+   seccion, y `background-image` no admite transicion: la foto pasaba de no
+   estar a estar entre dos fotogramas. Medido en la navegacion a catalogo, el
    brillo medio de la pantalla saltaba de 18 a 52 en 20 ms.
 
-   El intento anterior (V63, retirada) fue tapar ese instante con un velo. No
-   servía: la foto no se pinta al abrirse la compuerta sino ~500 ms después,
-   cuando el renderizador la rasteriza, y para entonces el velo ya se había
-   ido. Lo único que aportaba era un oscurecimiento intermedio.
+   Aqui la composicion entera -el degradado SOBRE la textura, tal como la
+   declaraba la seccion- se muda a una capa propia que si se puede fundir. Lleva
+   `background-color` negro para que a opacidad 1 tape por completo lo que haya
+   debajo: asi el resultado final es exactamente el de antes (degradado sobre
+   textura sobre negro) y el tramo intermedio es un fundido limpio desde el
+   degradado a secas.
 
-   Aquí se mueve la textura a una capa propia, que sí se puede fundir. La
-   composición medida es la misma en las ocho páginas y en los tres anchos —un
-   único degradado sobre el arte— así que se reparte en tres planos sin cambiar
-   el resultado:
+   Dos cosas aprendidas midiendo, por si alguien lo retoca:
+   - La textura NO es opaca (alfa ~0,73 en el hero), asi que no basta con
+     apilarla: el degradado tiene que ir en la MISMA capa y encima de ella,
+     como estaba.
+   - Repartir degradado y textura en dos planos con `z-index` negativos no
+     respeto el orden esperado (comprobado pintando cada capa de un color
+     plano). Con las dos en un solo `background-image` el orden lo fija el
+     propio CSS y no hay nada que suponer.
 
-     -3  .race-art     la textura, `opacity` 0→1 (lo que antes era la capa
-                       inferior del `background-image` de la sección)
-     -2  ::after       el degradado que iba encima de ella
-     -1  .race-atmosphere   sin tocar, como estaba
-
-   La sección deja de pintar imagen (conserva su `background-color`). Los
-   sectores sin `--sector-art` —`.pit-band`, `.about-vision-section`,
-   `.service-cta-section`, `.error-page`— simplemente dejan la capa vacía:
-   `var()` sin valor invalida la declaración y no pinta nada.
+   La seccion conserva el degradado a secas en todo momento: es lo que se ve
+   mientras la compuerta esta cerrada y lo que queda debajo durante el fundido.
    ========================================================================== */
 
 html.js body main .race-sector.race-sector.race-sector:not(.atmo-on),
 html.js body main .race-sector.race-sector.race-sector.atmo-on {
-  background-image: none !important;
+  background-image:
+    linear-gradient(110deg, rgba(1, 1, 1, 0.94), rgba(5, 5, 5, 0.68) 54%, rgba(0, 0, 0, 0.9)) !important;
 }
 
 html.js body main .race-sector > .race-art {
   position: absolute;
   inset: 0;
-  z-index: -3;
+  z-index: -1;
   pointer-events: none;
-  /* La portada declara `--sector-art` y las páginas internas `--section-art`;
-     `sectorArtURL()` en el JS mira las dos, y aquí hay que mirar las dos
-     igual o los sectores interiores se quedan sin textura. */
-  background-image: var(--sector-art, var(--section-art));
+  background-color: #000000;
+  /* La portada declara `--sector-art` y las paginas internas `--section-art`;
+     `sectorArtURL()` en el JS mira las dos, y aqui hay que mirar las dos igual
+     o los sectores interiores se quedan sin textura. */
+  background-image:
+    linear-gradient(110deg, rgba(1, 1, 1, 0.94), rgba(5, 5, 5, 0.68) 54%, rgba(0, 0, 0, 0.9)),
+    var(--sector-art, var(--section-art));
   background-position: 50% 50%;
   background-repeat: no-repeat;
   background-size: cover;
@@ -20303,48 +20305,14 @@ html.js body main .race-sector > .race-art {
   transition: opacity 0.62s ease;
 }
 
-/* El manifiesto estira su textura en vez de recortarla: es el único sector que
-   no usa `cover`, y se replica aquí para no cambiarle el encuadre. */
+/* El manifiesto estira su textura en vez de recortarla: es el unico sector que
+   no usa `cover`, y se replica aqui para no cambiarle el encuadre. */
 html.js body main .ln-manifesto > .race-art {
-  background-size: 100% 100%;
+  background-size: cover, 100% 100%;
 }
 
 html.js body main .race-sector.atmo-on > .race-art {
   opacity: 1;
-}
-
-/* El degradado, que antes era la capa superior del fondo de la sección. Este
-   pseudo-elemento venía usado como anillo decorativo en `.page-hero` y `.hero`
-   —ancho fijo, `aspect-ratio`, borde redondo— y anulado después con
-   `display: none`, así que hay que devolverlo a una caja limpia. */
-html.js body main .race-sector::after {
-  content: "" !important;
-  display: block !important;
-  position: absolute !important;
-  inset: 0 !important;
-  width: auto !important;
-  height: auto !important;
-  aspect-ratio: auto !important;
-  margin: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  transform: none !important;
-  filter: none !important;
-  animation: none !important;
-  opacity: 1 !important;
-  z-index: -2;
-  pointer-events: none;
-  /* `!important` porque en `.hero` este pseudo-elemento ya traía un resplandor
-     verde declarado —invisible, porque otra capa lo apagaba con `display:none`—
-     y al devolverlo a la vida ganaba al degradado, dejando la textura sin
-     oscurecer. Verificado que hoy ningún sector pinta un fondo propio aquí. */
-  background-color: transparent !important;
-  background-image:
-    linear-gradient(110deg, rgba(1, 1, 1, 0.94), rgba(5, 5, 5, 0.68) 54%, rgba(0, 0, 0, 0.9)) !important;
-  background-position: 0 0 !important;
-  background-repeat: no-repeat !important;
-  background-size: auto !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
