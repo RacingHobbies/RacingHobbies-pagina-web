@@ -1991,15 +1991,20 @@ body .static-step-card .step-media::after {
      estrecha a la vez. Las dos cosas juntas: la del sitio está en `em`, así que
      al agrandar la letra la medida crecía igual y el titular salía con las
      mismas líneas —más grandes, pero el bloque no ganaba alto; contacto incluso
-     perdía una línea—. Con 4.6em el titular reparte en más líneas y ocupa la
+     perdía una línea—. Con 4.8em el titular reparte en más líneas y ocupa la
      escena, como el `statement` de la portada. La medida va en `em` y no en
      `ch` a propósito: `ch` cambia con la fuente que acabe resolviéndose y
-     movería los cortes. */
+     movería los cortes.
+     El suelo de la medida lo marca la palabra más larga de los titulares:
+     «EXPERIENCIAS» ocupa 4.644em. Con 4.6em se quedaba 2.6px corta y, como
+     aquí rige `overflow-wrap: anywhere`, el navegador no la dejaba desbordar:
+     la partía y mandaba la «S» sola a la línea siguiente. De 4.7em para abajo
+     vuelve a romperse, así que 4.8em deja un dedo de holgura. */
   body:not(.page-home) .page-hero > .container > h1 {
     font-size: clamp(48px, 16vw, 66px) !important;
     line-height: 1.03 !important;
     margin: 0 !important;
-    max-width: 4.6em !important;
+    max-width: 4.8em !important;
   }
 
   body:not(.page-home) .page-hero > .container > h1 ~ * {
@@ -2994,79 +2999,81 @@ html.lando-anim .sec-title.rh-has-diacritic,
 }
 
 /* ===========================================================================
-   TELÉFONO EN HORIZONTAL: LAS BANDAS USAN EL ANCHO QUE LES SOBRA
-   En apaisado hay ancho de sobra y falta alto, y estas bandas hacían justo lo
-   contrario: apilaban en una columna dos bloques que caben al lado. Medido a
-   667x375, `.two-col` resolvía a `grid-template-columns: 545px` —una sola
-   columna— y la sección de visión se iba a 658px sobre un viewport de 375,
-   1,75 pantallas. Puestos lado a lado, el alto pasa a ser el del bloque más
-   alto en vez de la suma de los dos.
+   TELÉFONO EN HORIZONTAL: LA BANDA ANCHA USA EL ANCHO QUE LE SOBRA
+   En apaisado sobra ancho y falta alto, y estas bandas apilaban en columna dos
+   bloques que caben al lado. Puestos en fila, el alto pasa a ser el del bloque
+   más alto en vez de la suma: la sección de visión baja de 675 a 525 sobre un
+   viewport de 390.
+
+   Sólo a partir de 760px de ancho. A 667 se probó y salió PEOR (658 -> 666):
+   el contenedor mide ahí 545px, dos columnas caen a 259px cada una y la cita
+   se parte en tantas líneas que crece más de lo que se ahorra.
+
+   La especificidad no es decorativa: `html body main > section.race-sector.X`
+   es el selector con el que el archivo declara estos contenedores más arriba.
+   Con `body:not(.page-home) .X > .container` la regla se escribía pero perdía,
+   y el reparto se quedaba en columna sin dar ningún aviso.
    ========================================================================== */
 
-@media (orientation: landscape) and (max-height: 500px) and (min-width: 600px) {
+@media (orientation: landscape) and (max-height: 500px) and (min-width: 760px) {
   .page-about .about-vision-section .two-col {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
     align-items: center !important;
     gap: 26px !important;
   }
 
-  body:not(.page-home) .service-cta-section > .container,
-  body:not(.page-home) .pit-band > .container {
+  html body main > section.race-sector.service-cta-section > .container,
+  html body main > section.race-sector.pit-band > .container {
     flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
     gap: 26px !important;
   }
 
-  /* El botón de pit-band no se estira a media banda: conserva su ancho. */
-  body:not(.page-home) .pit-band > .container > .btn {
+  html body main > section.race-sector.pit-band > .container > .btn {
     flex: 0 0 auto !important;
-  }
-
-  /* Con los bloques ya en fila, el respiro vertical se ajusta al alto que
-     queda bajo la cabecera fija. */
-  .page-home .community-section,
-  body:not(.page-home) .pit-band,
-  body:not(.page-home) .service-cta-section,
-  .page-about .about-vision-section {
-    padding-top: calc(var(--header-h) + 10px) !important;
-    padding-bottom: 22px !important;
   }
 }
 
 /* ===========================================================================
    VERTICAL EN PANTALLAS CORTAS: LOS TRES QUE SE PASABAN POR POCO
-   A 375x667 y 360x780 quedaban tres secciones entre 1,02 y 1,13 pantallas: se
-   veía la cola asomando sin motivo. Todo lo que se recorta aquí es respiro,
-   no contenido, y por encima de 800px de alto no se toca nada.
+   A 375x667 y 360x780 quedaban tres secciones entre 1,02 y 1,24 pantallas: se
+   veía asomar la cola sin motivo. Todo lo que se recorta aquí es respiro, no
+   contenido, y por encima de 800px de alto no se toca nada.
    ========================================================================== */
 
 @media (max-width: 899px) and (orientation: portrait) and (max-height: 800px) {
-  /* Ubicación: 757 sobre 667. El bulto es la tarjeta del mapa (220px, de los
-     que 94 son respiro interno) y el relleno de los seis datos. */
+  /* Comunidad: 683 sobre 667. Los 118px de respiro superior los pone una regla
+     con `html body main > section.race-sector`, así que hay que igualarla. */
+  html body main > section.race-sector.community-section {
+    padding-top: calc(var(--header-h) + 26px) !important;
+    padding-bottom: 30px !important;
+  }
+
+  /* Servicios del taller: 827 sobre 780. Los 92px de arriba y abajo salen de
+     `body:not(.page-home) main > section:not(.page-hero)`; se repite el mismo
+     selector añadiendo la clase para ganarle. */
+  body:not(.page-home) main > section.service-catalog-section:not(.page-hero):not([data-lando-horizontal]) {
+    padding-block: clamp(36px, 5.6svh, 64px) !important;
+  }
+
+  /* Ubicación: 729 sobre 667. El bulto es la tarjeta del mapa y el relleno de
+     los seis datos; todo lo que se toca es respiro interno. */
   .page-home .home-location .map-card .map-consent {
-    padding: 16px !important;
-    gap: 6px !important;
+    padding: 14px !important;
+    gap: 4px !important;
   }
 
   .page-home .home-location .info-item {
-    padding-block: 10px !important;
+    padding-block: 6px !important;
+  }
+
+  .page-home .home-location .info-list {
+    gap: 6px !important;
   }
 
   .page-home .home-location .sec-head {
-    margin-bottom: 4px !important;
-  }
-
-  /* Servicios del taller: 827 sobre 780. */
-  body:not(.page-home) .service-catalog-section {
-    padding-top: clamp(40px, 6svh, 72px) !important;
-    padding-bottom: clamp(32px, 5svh, 64px) !important;
-  }
-
-  /* Comunidad se pasaba 16px tras el recorte de márgenes de pantallas bajas. */
-  .page-home .community-section {
-    padding-top: calc(var(--header-h) + 30px) !important;
-    padding-bottom: 32px !important;
+    margin-bottom: 2px !important;
   }
 }
 
@@ -3083,5 +3090,28 @@ html.lando-anim .sec-title.rh-has-diacritic,
 @media (max-width: 343px) {
   html.rh-mobile-motion body:not(.page-home) .steps[data-lando-htrack] {
     grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* --- Ubicación en las pantallas más cortas ------------------------------
+   Tras el recorte anterior quedaba en 691 sobre 667: 24px. Se reparten entre
+   el respiro superior y los tres huecos internos de la rejilla, sin tocar ni
+   la tarjeta del mapa ni el tamaño de los datos. Sólo por debajo de 700px de
+   alto, que es donde el problema existe. */
+@media (max-width: 899px) and (orientation: portrait) and (max-height: 700px) {
+  .page-home .home-location {
+    padding-top: clamp(34px, 4.6svh, 60px) !important;
+  }
+
+  .page-home .home-location .info-grid {
+    gap: 6px !important;
+  }
+
+  .page-home .home-location .info-list {
+    gap: 4px !important;
+  }
+
+  .page-home .home-location .map-card .map-consent {
+    padding: 12px !important;
   }
 }

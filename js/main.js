@@ -15,6 +15,13 @@
   const LOW_POWER_DEVICE =
     Number(navigator.deviceMemory || 8) <= 4 ||
     Number(navigator.hardwareConcurrency || 8) <= 4;
+  // El scroll de un dedo ya tiene inercia y composición nativas. Las escenas
+  // con scrub, parallax y lecturas de layout por frame se reservan para la
+  // composición de escritorio; en pantalla táctil se usan reveals ligeros y
+  // carriles que el navegador puede desplazar directamente.
+  const MOBILE_VIEWPORT = window.matchMedia(
+    "(max-width: 899px), (pointer: coarse)"
+  ).matches;
 
   // Señala que JS está activo: habilita las animaciones en CSS.
   document.documentElement.classList.add("js");
@@ -697,6 +704,44 @@
     }
     els.forEach((el) => revealObserver.observe(el));
     collectScrollReveals();
+    initMobileTrackReveals();
+  }
+
+  /* En escritorio las galerías horizontales se recorren dentro de una escena
+     controlada por ScrollTrigger. En móvil pasan a ser carriles nativos: si
+     cada tarjeta espera a entrar individualmente en el viewport, el usuario
+     puede encontrar una tarjeta transparente durante el primer gesto lateral.
+     Al entrar la sección preparamos el carril completo una sola vez. Mantiene
+     la entrada vertical de la sección, pero el desplazamiento horizontal queda
+     siempre listo y no añade trabajo al scroll. */
+  function initMobileTrackReveals() {
+    if (!MOBILE_VIEWPORT) return;
+    const tracks = $$('[data-lando-htrack]');
+    if (!tracks.length) return;
+
+    const revealTrack = (track) => {
+      $$(".reveal:not(.in)", track).forEach((item) => {
+        item.classList.add("in");
+        if (revealObserver) revealObserver.unobserve(item);
+      });
+    };
+
+    if (REDUCED || !("IntersectionObserver" in window)) {
+      tracks.forEach(revealTrack);
+      return;
+    }
+
+    const trackObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          revealTrack(entry.target);
+          trackObserver.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px 12% 0px" }
+    );
+    tracks.forEach((track) => trackObserver.observe(track));
   }
 
   /* ---------- Aparición conducida por el scroll ----------
@@ -838,7 +883,7 @@
     // Es la clase `.in` la que termina de mostrar los bloques `.reveal`. Sin
     // esto se quedan a media opacidad para siempre, que era lo que hacía que
     // la página pareciera cargada a medias en el teléfono.
-    if (REDUCED) return;
+    if (REDUCED || LOW_POWER_DEVICE || MOBILE_VIEWPORT) return;
     scrollRevealOn = true;
     collectScrollReveals();
     if (!scrollRevealItems.length) {
@@ -881,7 +926,7 @@
   /* ---------- Profundidad editorial ---------- */
 
   function initParallax() {
-    if (REDUCED) return;
+    if (REDUCED || LOW_POWER_DEVICE || MOBILE_VIEWPORT) return;
     const elements = $$("[data-plx]");
     if (elements.length === 0) return;
     let ticking = false;
@@ -2301,6 +2346,14 @@
     if (REDUCED) return;
     document.documentElement.classList.add("lando-anim");
 
+    // No se crean timelines, pins ni se divide el texto en decenas de nodos
+    // en móvil. El CSS conserva la misma llegada del hero y los reveals se
+    // resuelven con IntersectionObserver sin competir con el gesto de scroll.
+    if (MOBILE_VIEWPORT) {
+      document.documentElement.classList.add("rh-mobile-motion");
+      return;
+    }
+
     const g = window.gsap;
     const ST = window.ScrollTrigger;
     if (g && ST) {
@@ -3039,6 +3092,9 @@
   /* ---------- Experiencia cinematográfica global ---------- */
 
   function initLandoExperience() {
+    // Lenis y las pausas de lectura aportan matiz con rueda o trackpad, pero
+    // en touch añaden una segunda cola al desplazamiento del navegador.
+    if (MOBILE_VIEWPORT) return;
 
     const routeCurtain = document.createElement("div");
     routeCurtain.className = "rh-route-curtain";
@@ -3507,6 +3563,7 @@
   /* ---------- Paridad de movimiento con la referencia ---------- */
 
   function initReferenceParityMotion() {
+    if (MOBILE_VIEWPORT) return;
 
     const g = window.gsap;
     const ST = window.ScrollTrigger;
