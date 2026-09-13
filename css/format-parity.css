@@ -354,7 +354,7 @@
    completa la foto ocupa exactamente el ancho de la tarjeta.
    -------------------------------------------------------------------------- */
 @media (max-width: 899px) {
-  .static-step-card .step-media {
+  .rh-hcard.static-step-card .step-media {
     margin-inline: 0 !important;
   }
 }
@@ -739,7 +739,7 @@
    para que el pie de la tarjeta se saliera de la escena fijada.
    -------------------------------------------------------------------------- */
 @media (max-width: 899px) {
-  html.lando-anim [data-lando-htrack] > .static-step-card::before {
+  html.lando-anim [data-lando-htrack] > .rh-hcard.static-step-card::before {
     content: none !important;
   }
 }
@@ -1845,7 +1845,7 @@ body .static-step-card .step-media::after {
    + título + texto, así que reparte bien el alto extra, igual que la de
    vitrina. */
 @media (max-width: 899px) {
-  html.lando-anim body:not(.page-home) [data-lando-htrack] > .static-step-card {
+  html.lando-anim body:not(.page-home) [data-lando-htrack] > .rh-hcard.static-step-card {
     width: min(62vw, 30svh) !important;
     height: 100% !important;
     max-height: none !important;
@@ -3059,5 +3059,21 @@ html.lando-anim .sec-title.rh-has-diacritic,
   .page-home .community-section {
     padding-top: calc(var(--header-h) + 30px) !important;
     padding-bottom: 32px !important;
+  }
+}
+
+/* ===========================================================================
+   TELÉFONO ESTRECHO: LAS FICHAS DE PASO, EN UNA COLUMNA
+   La rejilla de dos columnas de `rh-mobile-motion` deja fichas de 140px en un
+   teléfono de 320, y con el relleno lateral quedan 102px de línea: menos que
+   "Recomendamos" (112px) o "presupuesto" (107px), que se cortaban contra el
+   borde. Medido de 320 a 412: sólo por debajo de 344px no da el ancho. Ahí
+   pasan a una sola columna —256px de línea— y de 344 para arriba no cambia
+   nada. Sólo afecta a las fichas de proceso y valores; los carriles de la
+   portada conservan sus dos columnas.
+   ========================================================================== */
+@media (max-width: 343px) {
+  html.rh-mobile-motion body:not(.page-home) .steps[data-lando-htrack] {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
