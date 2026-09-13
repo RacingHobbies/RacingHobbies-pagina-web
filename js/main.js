@@ -2375,13 +2375,17 @@
     // portada, y medido con la CPU a 1/6 el carril scrollea a los mismos
     // 16,7 ms por fotograma que una sección sin escena.
     //
-    // Las galerías de la portada NO entran: allí la fila ya tiene su propia
-    // versión de teléfono —un carril nativo con `scroll-snap`, que se recorre
-    // con el dedo y no pide ni pin ni scrub— y montarle encima la escena de
-    // escritorio dejaba las fichas recortadas contra el borde.
+    // Las dos galerías de la portada comparten la misma escena que escritorio:
+    // el CSS de `rh-rail-built` ya recupera su geometría móvil y evita que la
+    // fila nativa recortada sustituya al recorrido ligado al scroll.
     if (MOBILE_VIEWPORT) {
       document.documentElement.classList.add("rh-mobile-motion");
-      initHorizontalRails((sec) => !!sec.querySelector(".steps[data-lando-htrack]"));
+      initHorizontalRails(
+        (sec) =>
+          !!sec.querySelector(".steps[data-lando-htrack]") ||
+          sec.matches(".editorial-garage, .home-showcase")
+      );
+      initMarquees();
       return;
     }
 
@@ -2680,7 +2684,8 @@
        cubrir dos veces el ancho de pantalla para que el bucle no tenga
        costuras visibles.
        ================================================================== */
-    $$("[data-marquee]").forEach((host) => {
+    function initMarquees() {
+      $$("[data-marquee]").forEach((host) => {
       const track = host.querySelector("[data-marquee-track]");
       if (!track) return;
       const base = Number(host.dataset.marqueeSpeed || 40); // px/s
@@ -2805,7 +2810,10 @@
         boost = Math.max(-150, Math.min(150, boost + delta * 2.5 * dirAttr));
         }
       }, { passive: true });
-    });
+      });
+    }
+
+    initMarquees();
 
     /* ==================================================================
        7. Hero fijado: el hero se queda quieto mientras su contenido se aleja
@@ -3403,13 +3411,98 @@
 
   /* ---------- Experiencia cinematográfica global ---------- */
 
+  // La escena comparte una única línea de tiempo entre formatos. La versión
+  // móvil conserva el mismo avance de las frases, pero sólo monta este
+  // ScrollTrigger —no el resto de escenas fijadas de la portada.
+  function initManifestoTimeline(g, ST, manifesto) {
+    const lines = $$(".ln-manifesto-copy > span", manifesto);
+    const blocks = $$(".ln-wipe-grid > span", manifesto);
+    const copies = $$(".ln-manifesto-copy", manifesto);
+    const stage = $(".ln-manifesto-stage", manifesto);
+
+    const stickyTravel = () => {
+      const cs = getComputedStyle(manifesto);
+      return Math.max(
+        1,
+        manifesto.offsetHeight -
+          parseFloat(cs.paddingTop) -
+          parseFloat(cs.paddingBottom) -
+          (stage ? stage.offsetHeight : 0)
+      );
+    };
+
+    const timeline = g.timeline({
+      scrollTrigger: {
+        trigger: stage || manifesto,
+        start: "top top",
+        end: () => "+=" + stickyTravel(),
+        scrub: true,
+        invalidateOnRefresh: true,
+      },
+    });
+
+    if (copies.length) {
+      timeline.fromTo(
+        copies,
+        { yPercent: -2 },
+        { yPercent: 8, ease: "none", duration: 2.16 },
+        0
+      );
+    }
+
+    lines.forEach((line) => {
+      const index = Array.prototype.indexOf.call(line.parentElement.children, line);
+      timeline.fromTo(
+        line,
+        { xPercent: index % 2 ? 6 : -6, yPercent: -13, opacity: 0.25 },
+        {
+          xPercent: 0,
+          yPercent: 0,
+          opacity: 1,
+          ease: "power1.inOut",
+          duration: 4.8,
+        },
+        index * 1.4
+      );
+    });
+
+    blocks.forEach((block) => {
+      timeline.fromTo(
+        block,
+        { scaleY: 0 },
+        { scaleY: 1, ease: "power1.inOut", duration: 3 },
+        1.2
+      ).to(
+        block,
+        { scaleY: 0, ease: "power1.inOut", duration: 2.5 },
+        4.35
+      );
+    });
+
+    if (copies.length) timeline.to({}, { duration: 8 }, 9);
+  }
+
+  function initMobileManifestoMotion() {
+    const g = window.gsap;
+    const ST = window.ScrollTrigger;
+    const manifesto = $(".ln-manifesto");
+    if (REDUCED || !g || !ST || !manifesto) return;
+    g.registerPlugin(ST);
+    manifesto.classList.add("rh-mobile-manifesto-motion");
+    initManifestoTimeline(g, ST, manifesto);
+    ST.refresh();
+  }
+
   function initLandoExperience() {
     // Lo que queda aquí son las escenas fijadas, la cortina de ruta y los
     // recorridos horizontales: trabajo de maquetación en cada cuadro del
     // gesto. Eso sigue siendo de pantalla grande. El motor de scroll y las
     // pausas ya no: viven en `initSmoothScrollAndPauses`, que corre en los
     // dos formatos.
-    if (MOBILE_VIEWPORT) return;
+    if (MOBILE_VIEWPORT) {
+      initMobileManifestoMotion();
+      return;
+    }
 
     const routeCurtain = document.createElement("div");
     routeCurtain.className = "rh-route-curtain";
@@ -3521,92 +3614,7 @@
     g.registerPlugin(ST);
 
     const manifesto = $(".ln-manifesto");
-    if (manifesto) {
-      const lines = $$(".ln-manifesto-copy > span", manifesto);
-      const blocks = $$(".ln-wipe-grid > span", manifesto);
-      const copies = $$(".ln-manifesto-copy", manifesto);
-      const stage = $(".ln-manifesto-stage", manifesto);
-
-      // El escenario es sticky por CSS: se clava cuando su borde superior toca
-      // el del viewport y se suelta en cuanto agota el hueco que le deja la
-      // sección. La escena tiene que vivir EXACTAMENTE en ese tramo. Medirla
-      // sobre la sección entera dejaba fuera el relleno superior e inferior
-      // (110 px cada uno), y en esos últimos píxeles el escenario ya subía
-      // mientras la animación seguía creyéndose clavada: de ahí el salto hacia
-      // arriba del texto justo antes de salir.
-      const stickyTravel = () => {
-        const cs = getComputedStyle(manifesto);
-        return Math.max(
-          1,
-          manifesto.offsetHeight -
-            parseFloat(cs.paddingTop) -
-            parseFloat(cs.paddingBottom) -
-            (stage ? stage.offsetHeight : 0)
-        );
-      };
-
-      const timeline = g.timeline({
-        scrollTrigger: {
-          trigger: stage || manifesto,
-          start: "top top",
-          end: () => "+=" + stickyTravel(),
-          scrub: true,
-          invalidateOnRefresh: true,
-        },
-      });
-
-      // Deriva continua: las dos copias bajan a ritmo constante de punta a
-      // punta de la escena, así no hay ni un frame en que el texto se pare.
-      // Antes se asentaba al 36% del recorrido y se quedaba congelado los
-      // 600 px de scroll siguientes.
-      if (copies.length) {
-        timeline.fromTo(
-          copies,
-          { yPercent: -2 },
-          { yPercent: 8, ease: "none", duration: 2.16 },
-          0
-        );
-      }
-
-      // Encima de esa deriva, cada línea entra un poco por arriba y BAJA hasta
-      // asentarse en su sitio.
-      // El índice se toma dentro de su propio párrafo: hay dos copias
-      // superpuestas (la base y la blanca) y deben moverse a la vez, o se ve
-      // el texto duplicado.
-      lines.forEach((line) => {
-        const index = Array.prototype.indexOf.call(line.parentElement.children, line);
-        timeline.fromTo(
-          line,
-          { xPercent: index % 2 ? 6 : -6, yPercent: -13, opacity: 0.25 },
-          {
-            xPercent: 0,
-            yPercent: 0,
-            opacity: 1,
-            ease: "power1.inOut",
-            duration: 4.8,
-          },
-          index * 1.4
-        );
-      });
-      blocks.forEach((block, index) => {
-        timeline.fromTo(
-          block,
-          { scaleY: 0 },
-          { scaleY: 1, ease: "power1.inOut", duration: 3 },
-          1.2
-        ).to(
-          block,
-          { scaleY: 0, ease: "power1.inOut", duration: 2.5 },
-          4.35
-        );
-      });
-
-      // El mensaje termina su recorrido descendente y permanece visible y
-      // quieto durante toda la pausa final. No hay fade ni animación de salida.
-      if (copies.length) {
-        timeline.to({}, { duration: 8 }, 9);
-      }
-    }
+    if (manifesto) initManifestoTimeline(g, ST, manifesto);
 
     const heroStage = $(".hero-machine-stage");
     if (heroStage) {
