@@ -2792,6 +2792,37 @@ body .static-step-card .step-media::after {
     padding: 12px !important;
   }
 
+  /* --- La ficha de pasos y valores, con el ancho de la portada -----------
+     Puestos los cuatro carriles en paralelo al mismo porcentaje de escena, los
+     dos de inicio enseñan UNA ficha ocupando el cuadro y un filo de la
+     siguiente; los de Nosotros y Servicio técnico enseñaban DOS a medias
+     deslizándose a la vez, porque su ficha medía 62vw contra los 74vw de
+     arriba. Eso es lo que se leía como "se mueven un montón" y "demasiado
+     sensibles": no el ritmo —el gesto por ficha ya se había igualado— sino el
+     encuadre, que nunca terminaba de asentar ninguna ficha.
+
+     Con el mismo 74vw la composición es la misma y, de propina, el paso de la
+     fila coincide (306px a 390 de pantalla, igual que arriba), así que el
+     recorrido por ficha sale igual sin ningún factor que lo corrija.
+
+     Va pegada a la regla de la portada de la que copia el valor para que las
+     dos se muevan juntas si alguna vez cambia. */
+  html.lando-anim body:not(.page-home) [data-lando-htrack] > .rh-hcard.static-step-card {
+    width: 74vw !important;
+  }
+
+  /* Con la ficha ya ancha el párrafo ocupa menos renglones, y el tope del 50%
+     que lleva la foto dejaba hasta 146px de negro muerto bajo la última línea.
+     En la portada eso no pasa porque su imagen se queda con el alto sobrante;
+     aquí se le sube el techo para que haga lo mismo. El 62% no es redondo: es
+     donde la foto queda prácticamente cuadrada —289x299 a 390px de pantalla—
+     que es la proporción del recorte original, así que crece sin estirar el
+     coche. Donde no sobra alto (una pantalla de 568px) no cambia nada: el flex
+     no puede crecer más allá del hueco libre. */
+  html.lando-anim body:not(.page-home) [data-lando-htrack] > .rh-hcard.static-step-card .step-media {
+    max-height: 62% !important;
+  }
+
   body.page-home .home-showcase .vitrina-grid .tile img {
     min-height: 0 !important;
     max-height: 42svh;
