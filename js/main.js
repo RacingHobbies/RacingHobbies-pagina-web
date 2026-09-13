@@ -15,14 +15,6 @@
   const LOW_POWER_DEVICE =
     Number(navigator.deviceMemory || 8) <= 4 ||
     Number(navigator.hardwareConcurrency || 8) <= 4;
-  // En una pantalla táctil el navegador ya desplaza a 120 Hz cuando el
-  // dispositivo puede hacerlo. Las escenas con `pin` y `scrub` añaden trabajo
-  // de layout a cada gesto y convierten ese desplazamiento nativo en tirones.
-  // La portada mantiene sus entradas, pero las escenas continuas quedan para
-  // pantallas grandes, donde hay puntero, potencia y espacio para apreciarlas.
-  const MOBILE_VIEWPORT = window.matchMedia(
-    "(max-width: 899px), (pointer: coarse)"
-  ).matches;
 
   // Señala que JS está activo: habilita las animaciones en CSS.
   document.documentElement.classList.add("js");
@@ -843,7 +835,10 @@
   }
 
   function initScrollReveals() {
-    if (REDUCED || LOW_POWER_DEVICE || MOBILE_VIEWPORT) return;
+    // Es la clase `.in` la que termina de mostrar los bloques `.reveal`. Sin
+    // esto se quedan a media opacidad para siempre, que era lo que hacía que
+    // la página pareciera cargada a medias en el teléfono.
+    if (REDUCED) return;
     scrollRevealOn = true;
     collectScrollReveals();
     if (!scrollRevealItems.length) {
@@ -886,7 +881,7 @@
   /* ---------- Profundidad editorial ---------- */
 
   function initParallax() {
-    if (REDUCED || LOW_POWER_DEVICE || MOBILE_VIEWPORT) return;
+    if (REDUCED) return;
     const elements = $$("[data-plx]");
     if (elements.length === 0) return;
     let ticking = false;
@@ -2306,14 +2301,6 @@
     if (REDUCED) return;
     document.documentElement.classList.add("lando-anim");
 
-    // En móvil no se parte el texto en decenas de nodos ni se construyen
-    // ScrollTriggers. La entrada ligera se resuelve con CSS y el resto de la
-    // página usa IntersectionObserver y el scroll nativo del navegador.
-    if (MOBILE_VIEWPORT) {
-      document.documentElement.classList.add("rh-mobile-motion");
-      return;
-    }
-
     const g = window.gsap;
     const ST = window.ScrollTrigger;
     if (g && ST) {
@@ -2649,6 +2636,34 @@
         trackImage(img);
       });
       unit = track.scrollWidth / (copies + 1);
+
+      // Un carrusel deja casi todas sus copias fuera de pantalla —aquí llegan
+      // a x=4200 en un teléfono de 390— y `loading="lazy"` sólo mira la
+      // posición de maquetado: nunca dispara para ellas por muchas vueltas que
+      // dé el bucle. Como además son `img-fade` (opacidad 0 hasta cargar),
+      // quedaban como huecos entre los logos que sí se veían, y se notaba
+      // mucho más en el teléfono que en escritorio, donde casi toda la banda
+      // cabe a la vez. Al acercarse la banda se pasan a `eager`: son seis
+      // archivos distintos y las copias salen de caché con la misma URL.
+      const despertarLogos = () => {
+        track.querySelectorAll('img[loading="lazy"]').forEach((img) => {
+          img.loading = "eager";
+          if (!img.complete || !img.naturalWidth) img.src = img.src;
+        });
+      };
+      if ("IntersectionObserver" in window) {
+        const ioLogos = new IntersectionObserver(
+          (entradas) => {
+            entradas.forEach((entrada) => {
+              if (!entrada.isIntersecting) return;
+              despertarLogos();
+              ioLogos.disconnect();
+            });
+          },
+          { rootMargin: "200% 0px" }
+        );
+        ioLogos.observe(host);
+      } else despertarLogos();
 
       let x = 0;
       let boost = 0; // px/s añadidos por la inercia del scroll
@@ -3024,7 +3039,6 @@
   /* ---------- Experiencia cinematográfica global ---------- */
 
   function initLandoExperience() {
-    if (MOBILE_VIEWPORT) return;
 
     const routeCurtain = document.createElement("div");
     routeCurtain.className = "rh-route-curtain";
@@ -3134,19 +3148,19 @@
     // en lugar de cancelar el evento, así el trackpad conserva su inercia y la
     // barra nativa sigue funcionando. ScrollTrigger se sincroniza con su tick
     // para que las escenas con `scrub` vayan en el mismo frame, sin doble retraso.
-    const touchViewport = window.matchMedia("(max-width: 899px)").matches;
-    if (!REDUCED && window.Lenis && !touchViewport) {
-      // En pantallas táctiles el navegador ya ofrece inercia acelerada. Hacer
-      // que Lenis replique cada `touchmove` añade una segunda cola de frames y
-      // se percibe como tirones al cruzar escenas fijadas. Conservamos Lenis
-      // para rueda/trackpad y ScrollTrigger, pero el dedo vuelve a desplazar
-      // de forma nativa y directa.
+    if (!REDUCED && window.Lenis) {
+      // El teléfono usa el mismo motor que el escritorio. Se apagó en su día
+      // porque las escenas fijadas daban tirones al arrastrar, pero aquello no
+      // era Lenis: era un `ScrollTrigger.refresh()` en bucle disparado por el
+      // observer de `manifesto-timing-fix.js`. Arreglado el origen, `syncTouch`
+      // deja el dedo y las escenas con `scrub` en el mismo reloj, que es lo que
+      // da las pausas y el peso de la versión grande.
       const lenis = new window.Lenis({
         // Conserva la cola de scroll intencional, pero con menos frames de
         // retraso para que el movimiento se sienta más directo.
         lerp: 0.14,
         wheelMultiplier: 1,
-        syncTouch: !touchViewport,
+        syncTouch: true,
         touchMultiplier: 1.25,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       });
@@ -3240,11 +3254,6 @@
       }
 
       const pauseAtSectionEdge = (instance) => {
-        // La pausa de lectura es intencional en escritorio, pero en un móvil
-        // equivale a congelar el gesto del usuario 250 ms en cada sección.
-        // La escena sigue teniendo su animación; simplemente no interceptamos
-        // ni detenemos el desplazamiento táctil.
-        if (touchViewport) return;
         const current = instance.scroll;
         const viewportHeight = window.innerHeight;
         const edgeTolerance = Math.min(42, viewportHeight * 0.05);
@@ -3317,12 +3326,10 @@
         }
       };
 
-      if (!touchViewport) {
-        window.addEventListener("wheel", markScrollIntent, { passive: true });
-        window.addEventListener("touchstart", markScrollIntent, { passive: true });
-        window.addEventListener("touchmove", markScrollIntent, { passive: true });
-        lenis.on("scroll", pauseAtSectionEdge);
-      }
+      window.addEventListener("wheel", markScrollIntent, { passive: true });
+      window.addEventListener("touchstart", markScrollIntent, { passive: true });
+      window.addEventListener("touchmove", markScrollIntent, { passive: true });
+      lenis.on("scroll", pauseAtSectionEdge);
 
       // El menú y el carrito bloquean el scroll de la página mientras están
       // abiertos; Lenis debe pararse o seguiría moviendo el fondo.
@@ -3500,7 +3507,6 @@
   /* ---------- Paridad de movimiento con la referencia ---------- */
 
   function initReferenceParityMotion() {
-    if (MOBILE_VIEWPORT) return;
 
     const g = window.gsap;
     const ST = window.ScrollTrigger;
