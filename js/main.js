@@ -2980,7 +2980,17 @@
         lerp: 0.14,
         wheelMultiplier: 1,
         syncTouch: true,
-        touchMultiplier: 1.25,
+        // 1, no más: con `syncTouch` el contenido debe seguir al dedo píxel a
+        // píxel, igual que el scroll nativo. Con 1.25 la página avanzaba un 25%
+        // MÁS de lo que se arrastraba, y como todas las escenas cuelgan del
+        // scroll (los carriles, los reveals de `--rv`, las escenas fijadas),
+        // ese exceso se notaba multiplicado en cada una: un pulgar de 100px
+        // movía el carril 143. Medido con gestos táctiles reales a 100/200/300
+        // px de recorrido, la ganancia pasa de 1.37x a 1.09x, y la referencia
+        // del scroll nativo del navegador es 1.01x. El excedente que queda es
+        // la inercia de Lenis al soltar, constante (~15px) y no proporcional:
+        // `syncTouchLerp` no lo toca (probados 0.075, 0.3, 0.6 y 1: idénticos).
+        touchMultiplier: 1,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       });
       window.rhLenis = lenis;
