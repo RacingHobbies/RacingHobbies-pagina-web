@@ -3358,43 +3358,18 @@
 
         // Recorrido más largo que la distancia: cada píxel lateral cuesta más
         // scroll, así el desplazamiento se siente amplio y cinematográfico.
+        // En móvil ese 1.4 no compensa: la sección fijada ya vale una pantalla
+        // entera, y con el multiplicador el carril pedía casi dos pantallas de
+        // scroll para pasar cinco fichas. A 1 cada píxel lateral cuesta uno
+        // vertical, que se lee como un gesto directo y acorta la escena.
         //
-        // El factor fijo iguala el PÍXEL lateral, y lo que el ojo lee no son
-        // píxeles: son FICHAS. Medido en los cuatro carriles a 320, 360, 390 y
-        // 414 de ancho, las fichas de la portada salen a 74vw y las de pasos y
-        // valores a 62vw, así que con el mismo factor la portada gastaba 306px
-        // de scroll por ficha y las páginas internas 259: las fichas pasaban un
-        // 18% más rápido y la escena entera se despachaba en 0,81 pantallas
-        // contra las 1,40 de la portada. Eso es lo que se sentía "más rápido".
-        //
-        // En teléfono vertical el factor se deduce entonces del paso de la
-        // fila, para que una ficha cueste el mismo gesto en todos los carriles.
-        // La proporción es la que ya tenía la portada y se mantiene estable en
-        // los cuatro anchos (0.784 / 0.783 / 0.785 / 0.785), así que sus dos
-        // carriles se quedan donde estaban y son los internos los que ceden.
-        const MOBILE_SCROLL_PER_CARD = 0.785; // × ancho de pantalla
-
-        // `offsetLeft`, no `getBoundingClientRect`: las fichas van escaladas por
-        // su propia línea de tiempo y el rectángulo devolvería el paso ya
-        // deformado. El desplazamiento de maquetación no lo tocan los transforms.
-        const cardPitch = () =>
-          Math.abs(cards[1].offsetLeft - cards[0].offsetLeft) || 0;
-
-        const travelFactor = () => {
-          if (window.innerWidth > 899) return 1.4;
-          // Fuera del teléfono vertical esa proporción no vale: en apaisado y
-          // en tablet las fichas se dimensionan por ALTO (`svh`) y la portada
-          // baja de 74vw a ~45, de modo que normalizar ahí frenaría también sus
-          // carriles, que son la referencia y no se tocan. Esos formatos siguen
-          // con el 1 de siempre.
-          if (window.innerHeight <= window.innerWidth) return 1;
-          if (window.innerWidth > 600) return 1;
-          const pitch = cardPitch();
-          if (!pitch) return 1;
-          // El `max` es la red: pase lo que pase con la maquetación, ningún
-          // carril puede salir de aquí MÁS rápido de lo que ya iba.
-          return Math.max(1, (window.innerWidth * MOBILE_SCROLL_PER_CARD) / pitch);
-        };
+        // El mismo 1 vale para todos los carriles porque todos llevan ya la
+        // ficha del mismo ancho, así que el ritmo por ficha sale igual solo.
+        // Hubo aquí un factor deducido del paso de la fila para compensar que
+        // las fichas de las páginas internas medían 62vw contra los 74vw de la
+        // portada; igualados los anchos en `format-parity.css` era un no-op, y
+        // un no-op con una constante mágica dentro es peor que no tenerlo.
+        const travelFactor = () => (window.innerWidth <= 899 ? 1 : 1.4);
         const scrollTween = g.to(track, {
           x: () => -distance(),
           ease: "none",
