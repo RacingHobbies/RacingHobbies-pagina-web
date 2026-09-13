@@ -3378,9 +3378,15 @@
           },
         });
 
+        // Sin parallax de la foto dentro del marco. Lo hubo, pero nunca se vio:
+        // las fotos de los pasos y los valores viven en `.step-media img`, que
+        // la hoja de estilos fija con `transform: none !important`. GSAP
+        // escribía un transform en línea a cada fotograma del gesto y el CSS lo
+        // tiraba: cuatro invalidaciones de estilo por frame que no pintaban
+        // nada. La portada nunca lo montó —el tween iba detrás de un
+        // `:not(.page-home)`— y es justo la referencia de fluidez que se pide.
         cards.forEach((card) => {
           const inner = card.querySelector(".rh-card");
-          const img = card.querySelector("img");
           const tl = g.timeline({
             scrollTrigger: {
               trigger: card,
@@ -3401,9 +3407,6 @@
             ease: "power2.in",
             duration: 1,
           });
-          if (img && !document.body.classList.contains("page-home")) {
-            tl.fromTo(img, { xPercent: -11 }, { xPercent: 11, ease: "none", duration: 2 }, 0);
-          }
         });
       }
     }
