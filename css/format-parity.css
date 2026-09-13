@@ -250,7 +250,7 @@
    -------------------------------------------------------------------------- */
 @media (max-width: 899px) and (orientation: portrait) {
   .ln-manifesto-copy {
-    font-size: clamp(34px, min(14.5vw, 8svh), 7.8rem) !important;
+    font-size: clamp(38px, min(16vw, 8.7svh), 7.8rem) !important;
     line-height: 0.96 !important;
   }
 
@@ -2213,7 +2213,7 @@ body .static-step-card .step-media::after {
    desplazamiento se queda a 20px del borde. */
 @media (max-width: 899px) and (orientation: portrait) {
   .ln-manifesto-copy {
-    width: min(1240px, 80vw) !important;
+    width: min(1240px, 90vw) !important;
   }
 }
 

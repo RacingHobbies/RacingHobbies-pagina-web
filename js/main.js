@@ -2375,13 +2375,16 @@
     // portada, y medido con la CPU a 1/6 el carril scrollea a los mismos
     // 16,7 ms por fotograma que una sección sin escena.
     //
-    // Las galerías de la portada NO entran: allí la fila ya tiene su propia
-    // versión de teléfono —un carril nativo con `scroll-snap`, que se recorre
-    // con el dedo y no pide ni pin ni scrub— y montarle encima la escena de
-    // escritorio dejaba las fichas recortadas contra el borde.
+    // Las dos galerías de la portada comparten la misma escena que escritorio:
+    // el CSS de `rh-rail-built` ya recupera su geometría móvil y evita que la
+    // fila nativa recortada sustituya al recorrido ligado al scroll.
     if (MOBILE_VIEWPORT) {
       document.documentElement.classList.add("rh-mobile-motion");
-      initHorizontalRails((sec) => !!sec.querySelector(".steps[data-lando-htrack]"));
+      initHorizontalRails(
+        (sec) =>
+          !!sec.querySelector(".steps[data-lando-htrack]") ||
+          sec.matches(".editorial-garage, .home-showcase")
+      );
       return;
     }
 
