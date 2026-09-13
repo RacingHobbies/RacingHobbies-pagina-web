@@ -2347,14 +2347,6 @@
     if (REDUCED) return;
     document.documentElement.classList.add("lando-anim");
 
-    // No se crean timelines, pins ni se divide el texto en decenas de nodos
-    // en móvil. El CSS conserva la misma llegada del hero y los reveals se
-    // resuelven con IntersectionObserver sin competir con el gesto de scroll.
-    if (MOBILE_VIEWPORT) {
-      document.documentElement.classList.add("rh-mobile-motion");
-      return;
-    }
-
     const g = window.gsap;
     const ST = window.ScrollTrigger;
     if (g && ST) {
@@ -2369,6 +2361,28 @@
       // el teléfono, abrir el teclado— e ignora sólo ese vaivén de alto que
       // el navegador móvil se provoca a sí mismo.
       if (ST.config) ST.config({ ignoreMobileResize: true });
+    }
+
+    // En móvil no se crean timelines de texto, parallax ni escenas de lectura:
+    // el CSS conserva la llegada del hero y los reveals se resuelven con
+    // IntersectionObserver sin competir con el gesto de scroll.
+    //
+    // La excepción son los carriles de pasos y valores. Sin su escena las
+    // fichas se reparten en una rejilla de dos columnas: la foto, el título y
+    // el párrafo de cada paso metidos en 175px. Ahí la escena ES el formato de
+    // la ficha, no un adorno encima, así que se monta también en el teléfono;
+    // son dos páginas internas con una escena cada una, no las cincuenta de la
+    // portada, y medido con la CPU a 1/6 el carril scrollea a los mismos
+    // 16,7 ms por fotograma que una sección sin escena.
+    //
+    // Las galerías de la portada NO entran: allí la fila ya tiene su propia
+    // versión de teléfono —un carril nativo con `scroll-snap`, que se recorre
+    // con el dedo y no pide ni pin ni scrub— y montarle encima la escena de
+    // escritorio dejaba las fichas recortadas contra el borde.
+    if (MOBILE_VIEWPORT) {
+      document.documentElement.classList.add("rh-mobile-motion");
+      initHorizontalRails((sec) => !!sec.querySelector(".steps[data-lando-htrack]"));
+      return;
     }
 
     /* ==================================================================
@@ -2880,168 +2894,10 @@
       });
     }
 
-    /* ==================================================================
-       10. Galerías laterales  [data-lando-horizontal]
-       La sección se fija y su fila avanza en horizontal mientras haces
-       scroll normal. Cada tarjeta crece al acercarse al centro y se
-       encoge al salir, con la foto en parallax dentro de su marco.
-       Se aplica en todos los anchos: móvil y tablet reciben la misma escena
-       fijada que escritorio, con las tarjetas dimensionadas en vw.
-       ================================================================== */
-    if (g && ST) {
-      $$("[data-lando-horizontal]").forEach((sec) => {
-        try {
-          buildHorizontalRail(sec);
-        } catch (err) {
-          // Una galería que falle no puede llevarse por delante el resto de la
-          // capa de movimiento (la otra galería, el riel de scroll, la cortina
-          // de navegación): se degrada a cuadrícula y se sigue.
-          sec.removeAttribute("data-lando-horizontal");
-          const orphanBar = sec.querySelector(".rh-hbar");
-          if (orphanBar) orphanBar.remove();
-          console.error("Galería horizontal no inicializada:", sec.className, err);
-        }
-      });
-
-      function buildHorizontalRail(sec) {
-        const track = sec.querySelector("[data-lando-htrack]");
-        const cards = track
-          ? Array.from(track.children).filter((n) => n.nodeType === 1)
-          : [];
-        if (!track || cards.length < 2) {
-          sec.removeAttribute("data-lando-horizontal");
-          return;
-        }
-        document.documentElement.classList.add("lando-hscroll");
-
-        // Un carril se desplaza con `transform`, no con scroll nativo. En
-        // móviles algunos navegadores nunca activan `loading="lazy"` para las
-        // imágenes que empiezan fuera del viewport aunque después entren por
-        // la animación, dejando tarjetas vacías. Son sólo unas pocas imágenes
-        // por carril, así que se piden antes de comenzar el recorrido.
-        cards.forEach((card) => {
-          card.querySelectorAll("img").forEach((img) => {
-            img.loading = "eager";
-          });
-        });
-
-        // Cada tarjeta recibe un envoltorio propio y su número: los `.reveal`
-        // del sitio llevan `transform: none !important`, que anularía la
-        // animación de profundidad si se aplicara a la tarjeta directamente.
-        cards.forEach((card, i) => {
-          card.classList.add("rh-hcard");
-          const inner = document.createElement("span");
-          inner.className = "rh-card";
-          while (card.firstChild) inner.appendChild(card.firstChild);
-          const num = document.createElement("span");
-          num.className = "rh-card-num";
-          num.setAttribute("aria-hidden", "true");
-          num.textContent = String(i + 1).padStart(2, "0");
-          inner.insertBefore(num, inner.firstChild);
-          card.appendChild(inner);
-        });
-
-        // Barra de progreso de la galería. Cuelga del `.container`, no de la
-        // sección: así comparte el mismo carril que el titular y las tarjetas
-        // en vez de arrancar 60px más a la izquierda.
-        const bar = document.createElement("div");
-        bar.className = "rh-hbar";
-        bar.setAttribute("aria-hidden", "true");
-        bar.innerHTML = '<span class="rh-hbar-fill"></span>';
-        (sec.querySelector(":scope > .container") || sec).appendChild(bar);
-        const fill = bar.firstElementChild;
-
-        // La barra vive fuera de la fila para que no se desplace junto con las
-        // tarjetas. Su posición, sin embargo, debe seguir el borde inferior de
-        // esas tarjetas —no el borde del contenedor, que también incluye el
-        // titular y el espacio de la escena fijada.
-        const positionProgressBar = () => {
-          const firstCard = cards[0];
-          const barHeight = bar.offsetHeight || 2;
-          const container = sec.querySelector(":scope > .container") || sec;
-          if (!firstCard) return;
-          const cardBounds = firstCard.getBoundingClientRect();
-          const containerBounds = container.getBoundingClientRect();
-          bar.style.top = `${cardBounds.bottom - containerBounds.top - barHeight}px`;
-          bar.style.bottom = "auto";
-        };
-        positionProgressBar();
-
-        // Margen de salida proporcional: 120px sobre un viewport ancho, pero en
-        // un móvil de 390px esa cifra fija se comía un tercio de la pantalla y
-        // la última tarjeta quedaba a media altura al final del recorrido.
-        const tailGap = () => Math.min(120, Math.round(window.innerWidth * 0.1));
-        const distance = () =>
-          Math.max(0, track.scrollWidth - window.innerWidth + tailGap());
-        if (distance() < 300) {
-          // Sin recorrido no hay progreso que mostrar: la barra se quedaría
-          // fija en cero bajo una fila estática.
-          bar.remove();
-          sec.removeAttribute("data-lando-horizontal");
-          return;
-        }
-
-        // Recorrido más largo que la distancia: cada píxel lateral cuesta más
-        // scroll, así el desplazamiento se siente amplio y cinematográfico.
-        // En móvil ese 1.4 no compensa: la sección fijada ya vale una pantalla
-        // entera, y con el multiplicador el carril pedía casi dos pantallas de
-        // scroll para pasar cinco fichas. A 1 cada píxel lateral cuesta uno
-        // vertical, que se lee como un gesto directo y acorta la escena.
-        const travelFactor = () => (window.innerWidth <= 899 ? 1 : 1.4);
-        const scrollTween = g.to(track, {
-          x: () => -distance(),
-          ease: "none",
-          scrollTrigger: {
-            trigger: sec,
-            start: "top top",
-            end: () => "+=" + distance() * travelFactor(),
-            scrub: true,
-            pin: true,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-            onRefresh: positionProgressBar,
-            onUpdate: (self) => {
-              fill.style.transform = "scaleX(" + self.progress.toFixed(4) + ")";
-            },
-            // La barra vive en el `.container`, que es mucho más alto que la
-            // pantalla fijada, así que al soltarse el pin se quedaba colgada
-            // sola en una franja vacía: una raya verde bajo el logo sin nada
-            // alrededor. Sólo debe existir mientras su carril está activo.
-            onToggle: (self) => {
-              sec.classList.toggle("rh-rail-live", self.isActive);
-            },
-          },
-        });
-
-        cards.forEach((card) => {
-          const inner = card.querySelector(".rh-card");
-          const img = card.querySelector("img");
-          const tl = g.timeline({
-            scrollTrigger: {
-              trigger: card,
-              containerAnimation: scrollTween,
-              start: "left right",
-              end: "right left",
-              scrub: true,
-            },
-          });
-          tl.fromTo(
-            inner,
-            { scale: 0.86, yPercent: 7, opacity: 0.4 },
-            { scale: 1, yPercent: 0, opacity: 1, ease: "power2.out", duration: 1 }
-          ).to(inner, {
-            scale: 0.86,
-            yPercent: 7,
-            opacity: 0.4,
-            ease: "power2.in",
-            duration: 1,
-          });
-          if (img && !document.body.classList.contains("page-home")) {
-            tl.fromTo(img, { xPercent: -11 }, { xPercent: 11, ease: "none", duration: 2 }, 0);
-          }
-        });
-      }
-    }
+    // La galería lateral es lo único de esta capa que también se monta en
+    // el teléfono, así que vive en su propia función: se puede construir
+    // sin arrastrar detrás el resto de escenas.
+    initHorizontalRails();
 
     /* Abanico social elástico: estas tarjetas conservan su movimiento propio
        al pasar el puntero, mientras el resto de cajas usa sólo el destello. */
@@ -3360,6 +3216,188 @@
         event.preventDefault();
         lenis.scrollTo(target, { offset: -90, duration: 1.2 });
       });
+    }
+  }
+
+
+  /* ==================================================================
+     Galerías laterales  [data-lando-horizontal]
+     La sección se fija y su fila avanza en horizontal mientras haces
+     scroll normal. Cada tarjeta crece al acercarse al centro y se
+     encoge al salir, con la foto en parallax dentro de su marco.
+     Se aplica en todos los anchos: móvil y tablet reciben la misma escena
+     fijada que escritorio, con las tarjetas dimensionadas en vw.
+
+     `accept` filtra qué secciones reciben escena. Sin filtro entran todas,
+     que es lo que hace escritorio; el teléfono pasa uno.
+     ================================================================== */
+  function initHorizontalRails(accept) {
+    const g = window.gsap;
+    const ST = window.ScrollTrigger;
+    if (g && ST) {
+      $$("[data-lando-horizontal]").forEach((sec) => {
+        if (accept && !accept(sec)) return;
+        try {
+          buildHorizontalRail(sec);
+        } catch (err) {
+          // Una galería que falle no puede llevarse por delante el resto de la
+          // capa de movimiento (la otra galería, el riel de scroll, la cortina
+          // de navegación): se degrada a cuadrícula y se sigue.
+          sec.classList.remove("rh-rail-built");
+          sec.removeAttribute("data-lando-horizontal");
+          const orphanBar = sec.querySelector(".rh-hbar");
+          if (orphanBar) orphanBar.remove();
+          console.error("Galería horizontal no inicializada:", sec.className, err);
+        }
+      });
+
+      function buildHorizontalRail(sec) {
+        const track = sec.querySelector("[data-lando-htrack]");
+        const cards = track
+          ? Array.from(track.children).filter((n) => n.nodeType === 1)
+          : [];
+        if (!track || cards.length < 2) {
+          sec.removeAttribute("data-lando-horizontal");
+          return;
+        }
+        document.documentElement.classList.add("lando-hscroll");
+        // Antes de medir nada. En el teléfono la sección arranca repartida en la
+        // rejilla de dos columnas de `rh-mobile-motion`, y sobre esa geometría
+        // la fila mide el ancho de la pantalla en vez del de sus cuatro fichas:
+        // el recorrido salía de 11px, por debajo del mínimo, y el carril
+        // desistía justo en el formato que venía a arreglar. La clase devuelve
+        // la fila a `display:flex` y con ella ya se mide el carril de verdad.
+        // Si la construcción no prospera, se retira más abajo.
+        sec.classList.add("rh-rail-built");
+
+        // Un carril se desplaza con `transform`, no con scroll nativo. En
+        // móviles algunos navegadores nunca activan `loading="lazy"` para las
+        // imágenes que empiezan fuera del viewport aunque después entren por
+        // la animación, dejando tarjetas vacías. Son sólo unas pocas imágenes
+        // por carril, así que se piden antes de comenzar el recorrido.
+        cards.forEach((card) => {
+          card.querySelectorAll("img").forEach((img) => {
+            img.loading = "eager";
+          });
+        });
+
+        // Cada tarjeta recibe un envoltorio propio y su número: los `.reveal`
+        // del sitio llevan `transform: none !important`, que anularía la
+        // animación de profundidad si se aplicara a la tarjeta directamente.
+        cards.forEach((card, i) => {
+          card.classList.add("rh-hcard");
+          const inner = document.createElement("span");
+          inner.className = "rh-card";
+          while (card.firstChild) inner.appendChild(card.firstChild);
+          const num = document.createElement("span");
+          num.className = "rh-card-num";
+          num.setAttribute("aria-hidden", "true");
+          num.textContent = String(i + 1).padStart(2, "0");
+          inner.insertBefore(num, inner.firstChild);
+          card.appendChild(inner);
+        });
+
+        // Barra de progreso de la galería. Cuelga del `.container`, no de la
+        // sección: así comparte el mismo carril que el titular y las tarjetas
+        // en vez de arrancar 60px más a la izquierda.
+        const bar = document.createElement("div");
+        bar.className = "rh-hbar";
+        bar.setAttribute("aria-hidden", "true");
+        bar.innerHTML = '<span class="rh-hbar-fill"></span>';
+        (sec.querySelector(":scope > .container") || sec).appendChild(bar);
+        const fill = bar.firstElementChild;
+
+        // La barra vive fuera de la fila para que no se desplace junto con las
+        // tarjetas. Su posición, sin embargo, debe seguir el borde inferior de
+        // esas tarjetas —no el borde del contenedor, que también incluye el
+        // titular y el espacio de la escena fijada.
+        const positionProgressBar = () => {
+          const firstCard = cards[0];
+          const barHeight = bar.offsetHeight || 2;
+          const container = sec.querySelector(":scope > .container") || sec;
+          if (!firstCard) return;
+          const cardBounds = firstCard.getBoundingClientRect();
+          const containerBounds = container.getBoundingClientRect();
+          bar.style.top = `${cardBounds.bottom - containerBounds.top - barHeight}px`;
+          bar.style.bottom = "auto";
+        };
+        positionProgressBar();
+
+        // Margen de salida proporcional: 120px sobre un viewport ancho, pero en
+        // un móvil de 390px esa cifra fija se comía un tercio de la pantalla y
+        // la última tarjeta quedaba a media altura al final del recorrido.
+        const tailGap = () => Math.min(120, Math.round(window.innerWidth * 0.1));
+        const distance = () =>
+          Math.max(0, track.scrollWidth - window.innerWidth + tailGap());
+        if (distance() < 300) {
+          // Sin recorrido no hay progreso que mostrar: la barra se quedaría
+          // fija en cero bajo una fila estática.
+          bar.remove();
+          sec.classList.remove("rh-rail-built");
+          sec.removeAttribute("data-lando-horizontal");
+          return;
+        }
+
+        // Recorrido más largo que la distancia: cada píxel lateral cuesta más
+        // scroll, así el desplazamiento se siente amplio y cinematográfico.
+        // En móvil ese 1.4 no compensa: la sección fijada ya vale una pantalla
+        // entera, y con el multiplicador el carril pedía casi dos pantallas de
+        // scroll para pasar cinco fichas. A 1 cada píxel lateral cuesta uno
+        // vertical, que se lee como un gesto directo y acorta la escena.
+        const travelFactor = () => (window.innerWidth <= 899 ? 1 : 1.4);
+        const scrollTween = g.to(track, {
+          x: () => -distance(),
+          ease: "none",
+          scrollTrigger: {
+            trigger: sec,
+            start: "top top",
+            end: () => "+=" + distance() * travelFactor(),
+            scrub: true,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onRefresh: positionProgressBar,
+            onUpdate: (self) => {
+              fill.style.transform = "scaleX(" + self.progress.toFixed(4) + ")";
+            },
+            // La barra vive en el `.container`, que es mucho más alto que la
+            // pantalla fijada, así que al soltarse el pin se quedaba colgada
+            // sola en una franja vacía: una raya verde bajo el logo sin nada
+            // alrededor. Sólo debe existir mientras su carril está activo.
+            onToggle: (self) => {
+              sec.classList.toggle("rh-rail-live", self.isActive);
+            },
+          },
+        });
+
+        cards.forEach((card) => {
+          const inner = card.querySelector(".rh-card");
+          const img = card.querySelector("img");
+          const tl = g.timeline({
+            scrollTrigger: {
+              trigger: card,
+              containerAnimation: scrollTween,
+              start: "left right",
+              end: "right left",
+              scrub: true,
+            },
+          });
+          tl.fromTo(
+            inner,
+            { scale: 0.86, yPercent: 7, opacity: 0.4 },
+            { scale: 1, yPercent: 0, opacity: 1, ease: "power2.out", duration: 1 }
+          ).to(inner, {
+            scale: 0.86,
+            yPercent: 7,
+            opacity: 0.4,
+            ease: "power2.in",
+            duration: 1,
+          });
+          if (img && !document.body.classList.contains("page-home")) {
+            tl.fromTo(img, { xPercent: -11 }, { xPercent: 11, ease: "none", duration: 2 }, 0);
+          }
+        });
+      }
     }
   }
 

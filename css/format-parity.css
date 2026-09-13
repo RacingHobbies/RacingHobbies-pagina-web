@@ -348,14 +348,20 @@
 /* --------------------------------------------------------------------------
    6. Fotos de las tarjetas de proceso (Nosotros / Servicio técnico)
    El -18px de sangrado está pensado para una tarjeta con 18px de relleno
-   lateral, pero por debajo de 900 la tarjeta va sin relleno: la foto acababa
-   36px más ancha que su propia tarjeta y la primera del carril se salía de la
-   pantalla por la izquierda (se leía "sión" en vez de "Pasión"). En pantalla
-   completa la foto ocupa exactamente el ancho de la tarjeta.
+   lateral. Fuera del carril, por debajo de 900 la tarjeta va sin relleno: la
+   foto acababa 36px más ancha que su propia tarjeta y se salía por la
+   izquierda (se leía "sión" en vez de "Pasión"). Dentro del carril sí hay
+   relleno —lo pone `.rh-card`— y ahí la foto vuelve a sangrar hasta el borde,
+   que es como se ve en pantalla completa: la foto ocupa el ancho entero de la
+   tarjeta y son las esquinas redondeadas las que la recortan.
    -------------------------------------------------------------------------- */
 @media (max-width: 899px) {
   .rh-hcard.static-step-card .step-media {
     margin-inline: 0 !important;
+  }
+
+  html.lando-anim [data-lando-htrack] > .rh-hcard.static-step-card .rh-card .step-media {
+    margin-inline: calc(-1 * clamp(18px, 5vw, 24px)) !important;
   }
 }
 
@@ -1849,15 +1855,92 @@ body .static-step-card .step-media::after {
 /* --- 6. El mismo hueco en los carriles de las páginas internas ---------
    Medido en Nosotros y Servicio técnico: ficha de 172 x 275 dentro de un
    carril de 579px de alto — 304px muertos, el 52%. En pantalla completa la
-   ficha mide 389 x 499 y no sobra ni un píxel. La tarjeta de proceso es foto
-   + título + texto, así que reparte bien el alto extra, igual que la de
-   vitrina. */
+   ficha mide 389 x 540. La ficha de proceso es foto + título + texto, así que
+   reparte bien el alto extra, igual que la de vitrina.
+
+   El tope de alto no es decorativo. La fila se estira a la banda que le deja
+   la escena fijada, y con `max-height: none` la ficha se iba a 622px sobre un
+   contenido de 392: 230px de agujero bajo el último renglón, el 37% de la
+   ficha. En pantalla completa el hueco es de 168 sobre 540, el 31%, y ahí el
+   ancho da para cuatro renglones en vez de seis. Con el 60% de la pantalla la
+   proporción vuelve a la de la referencia y la foto se queda con lo que sobre.
+   ---------------------------------------------------------------------- */
 @media (max-width: 899px) {
   html.lando-anim body:not(.page-home) [data-lando-htrack] > .rh-hcard.static-step-card {
-    width: min(62vw, 30svh) !important;
+    width: clamp(200px, 62vw, 300px) !important;
     height: 100% !important;
-    max-height: none !important;
+    max-height: 60svh !important;
+  }
 
+  /* La foto es la parte elástica de la ficha: crece con el alto que sobre en
+     vez de dejarlo en blanco al pie, y cede el suyo cuando el texto no cabe.
+     Los tres números dicen eso mismo: la base es el alto que le gustaría
+     tener, `1 1` la autoriza a crecer y a encoger, y `min-height: 0` es lo
+     que de verdad la deja bajar de esa base —sin eso, en un teléfono de 568px
+     el párrafo se salía 115px por debajo del borde y `overflow: hidden` se lo
+     comía. El tope del 50% es por la foto: es un recorte cuadrado y estirarlo
+     a formato vertical le corta el coche por las ruedas. */
+  html.lando-anim body:not(.page-home) [data-lando-htrack] > .rh-hcard.static-step-card .step-media {
+    flex: 1 1 clamp(150px, 46vw, 220px) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 50% !important;
+  }
+}
+
+/* --- 6 bis. La misma ficha, tumbada, cuando el alto es el que falta -------
+   En apaisado la escena mide 390px de alto y a la ficha le quedan 210: con la
+   foto encima del texto no caben las dos cosas —la foto se quedaba en una
+   banda de 44px y el último renglón se salía igual—. Lo que sobra ahí es
+   ancho, así que la ficha se tumba: foto a la izquierda, título y texto a la
+   derecha. Es la misma ficha con las mismas piezas, girada 90°.
+
+   El reparto se hace con `grid`, no con `flex`, porque el título y el párrafo
+   son hermanos de la foto y no van envueltos en nada: con áreas se les manda
+   a la misma columna sin tocar el HTML. `.rh-card-num` va en absoluto, así
+   que no ocupa celda. */
+@media (max-width: 899px) and (orientation: landscape) and (max-height: 500px) {
+  html.lando-anim body:not(.page-home) [data-lando-htrack] > .rh-hcard.static-step-card {
+    width: min(62vw, 470px) !important;
+    max-height: none !important;
+  }
+
+  html.lando-anim body:not(.page-home) [data-lando-htrack] > .rh-hcard.static-step-card .rh-card {
+    display: grid !important;
+    grid-template-columns: 42% minmax(0, 1fr) !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    grid-template-areas:
+      "media title"
+      "media text" !important;
+    align-content: center !important;
+    column-gap: clamp(14px, 2.6vw, 20px) !important;
+    padding: 0 clamp(16px, 3vw, 22px) 0 0 !important;
+  }
+
+  html.lando-anim body:not(.page-home) [data-lando-htrack] > .rh-hcard.static-step-card .step-media {
+    grid-area: media !important;
+    max-height: none !important;
+    height: 100% !important;
+    margin: 0 !important;
+    border-bottom: 0 !important;
+  }
+
+  html.lando-anim body:not(.page-home) [data-lando-htrack] > .rh-hcard.static-step-card h3 {
+    grid-area: title !important;
+    align-self: end !important;
+    padding-top: clamp(14px, 4svh, 22px) !important;
+    font-size: clamp(14px, 4.4svh, 16px) !important;
+  }
+
+  /* El cuerpo se mide contra el alto, no contra el ancho: en apaisado lo que
+     escasea es el alto y una línea de más es lo que sobra. A 360px de alto
+     baja a 13px y los cinco renglones de "Honestidad" caben en los 105 que
+     deja el título; por encima de 422px de alto no cambia nada. */
+  html.lando-anim body:not(.page-home) [data-lando-htrack] > .rh-hcard.static-step-card p {
+    grid-area: text !important;
+    padding-bottom: clamp(14px, 4svh, 22px) !important;
+    font-size: clamp(12.5px, 3.6svh, 15.2px) !important;
+    line-height: 1.42 !important;
   }
 }
 
@@ -2939,13 +3022,19 @@ html.lando-anim .sec-title.rh-has-diacritic,
 }
 
 /* ===========================================================================
-   MÓVIL — SCROLL NATIVO PARA LAS ESCENAS DE PORTADA
+   MÓVIL — SCROLL NATIVO PARA EL MANIFIESTO, CARRIL PARA LAS GALERÍAS
 
-   En móvil no se construye el carril GSAP. Estas reglas convierten las dos
-   secciones que antes se fijaban en cuadrículas normales para que ninguna
-   tarjeta quede fuera del alcance del pulgar. El manifiesto también pierde su
-   largo artificial: sigue siendo una escena completa, pero se recorre una vez
-   en lugar de mantener un sticky y varios `pin` sobre el mismo gesto.
+   El manifiesto pierde su largo artificial: sigue siendo una escena completa,
+   pero se recorre una vez en lugar de mantener un sticky y varios `pin` sobre
+   el mismo gesto.
+
+   Las galerías laterales sí conservan su carril en el teléfono. La rejilla que
+   había aquí no era una alternativa equivalente: las fichas se salían por la
+   derecha —el documento no desplaza en horizontal, así que no había forma de
+   alcanzarlas— y las dos columnas dejaban la foto y el texto de cada paso en
+   140px. La rejilla se queda como red de seguridad, para las secciones a las
+   que el JS no llegó a montarles escena: sin `.rh-rail-built` no hay carril, y
+   entonces repartir en columnas sigue siendo lo correcto.
    ========================================================================== */
 @media (max-width: 899px), (pointer: coarse) {
   html.rh-mobile-motion .ln-manifesto {
@@ -2992,9 +3081,44 @@ html.lando-anim .sec-title.rh-has-diacritic,
     min-height: 0 !important;
     margin: 0 !important;
   }
+}
 
-  html.rh-mobile-motion .home-showcase [data-lando-htrack] > .tile {
+/* ===========================================================================
+   ...Y LA SECCIÓN QUE SÍ TIENE CARRIL RECUPERA SU GEOMETRÍA
+   El bloque de arriba reparte en columnas con `!important`, y para pasos y
+   valores eso es justo lo contrario de lo que hace falta. La tentación era
+   añadirle un `:not(.rh-rail-built)` a cada selector, pero eso les sube la
+   especificidad por encima de las reglas del carril nativo de la portada
+   —empatadas a (0,3,1)— y devolvía las galerías de inicio a la rejilla. Los
+   selectores de arriba se quedan como estaban y la excepción se escribe aquí:
+   sólo la ve una sección con escena montada, así que la portada no cambia.
+
+   Los valores son los mismos que declara `styles.css` para el carril de móvil;
+   se repiten porque el bloque de reparto los pisa con `!important`.
+   ========================================================================== */
+@media (max-width: 899px), (pointer: coarse) {
+  html.rh-mobile-motion [data-lando-horizontal].rh-rail-built {
+    display: flex !important;
+    height: 100svh !important;
+    min-height: 100svh !important;
+    max-height: 100svh !important;
+    overflow: hidden !important;
+    padding: clamp(74px, 10svh, 112px) 0 clamp(24px, 4svh, 52px) !important;
+  }
+
+  html.rh-mobile-motion [data-lando-horizontal].rh-rail-built > .container {
+    display: flex !important;
     min-height: 0 !important;
+    max-width: none !important;
+  }
+
+  html.rh-mobile-motion [data-lando-horizontal].rh-rail-built [data-lando-htrack] {
+    display: flex !important;
+    grid-template-columns: none !important;
+    width: max-content !important;
+    margin: 0 !important;
+    padding: 0 var(--rh-rail-gap, 22px) 0 0 !important;
+    gap: var(--rh-rail-gap, 22px) !important;
   }
 }
 
@@ -3088,7 +3212,7 @@ html.lando-anim .sec-title.rh-has-diacritic,
    portada conservan sus dos columnas.
    ========================================================================== */
 @media (max-width: 343px) {
-  html.rh-mobile-motion body:not(.page-home) .steps[data-lando-htrack] {
+  html.rh-mobile-motion body:not(.page-home) [data-lando-horizontal]:not(.rh-rail-built) .steps[data-lando-htrack] {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }
