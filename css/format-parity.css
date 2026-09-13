@@ -1361,6 +1361,14 @@ h1[data-reveal-lines] {
     overflow-wrap: anywhere !important;
   }
 
+  /* En Contacto, los cuatro primeros valores son enlaces y conservan el
+     tamaño móvil de `.info-item a` (0.95rem). Los dos últimos son texto plano
+     y heredaban los 11.5px del párrafo, por eso se veían más pequeños. Se
+     igualan al valor visible del resto sin tocar la composición de portada. */
+  .page-contact .info-list > .info-item:nth-last-child(-n + 2) p {
+    font-size: 0.95rem !important;
+  }
+
   /* El enlace ocupa toda la caja: tocar un teléfono o un email deja de ser
      una diana de 14px de alto. El `min-height` sólo engorda los valores de una
      línea; en la dirección y los horarios el propio texto ya da de sobra. */
