@@ -1164,6 +1164,7 @@
     if (motionLayerStarted) return;
     motionLayerStarted = true;
     initLando();
+    initSmoothScrollAndPauses();
     initLandoExperience();
     initReferenceParityMotion();
   }
@@ -3089,11 +3090,287 @@
 
   }
 
+  /* ---------- Scroll suave y pausas de escena ----------
+     Vivía dentro de `initLandoExperience`, que se corta entera en el
+     teléfono para no montar allí las escenas fijadas. Eso dejaba también
+     sin motor de scroll —y por tanto sin una sola pausa— a la versión
+     móvil, aunque el bloque de abajo ya dijera que las tenía. Separado,
+     el teléfono recibe las mismas pausas sin heredar el resto de la capa
+     cinematográfica. */
+  function initSmoothScrollAndPauses() {
+    // Scroll suave con Lenis, la misma base que usa landonorris.com. Sustituye
+    // al hijacker de rueda anterior: Lenis interpola la posición real de scroll
+    // en lugar de cancelar el evento, así el trackpad conserva su inercia y la
+    // barra nativa sigue funcionando. ScrollTrigger se sincroniza con su tick
+    // para que las escenas con `scrub` vayan en el mismo frame, sin doble retraso.
+    if (!REDUCED && window.Lenis) {
+      // El teléfono usa el mismo motor que el escritorio. Se apagó en su día
+      // porque las escenas fijadas daban tirones al arrastrar, pero aquello no
+      // era Lenis: era un `ScrollTrigger.refresh()` en bucle disparado por el
+      // observer de `manifesto-timing-fix.js`. Arreglado el origen, `syncTouch`
+      // deja el dedo y las escenas con `scrub` en el mismo reloj, que es lo que
+      // da las pausas y el peso de la versión grande.
+      const lenis = new window.Lenis({
+        // Conserva la cola de scroll intencional, pero con menos frames de
+        // retraso para que el movimiento se sienta más directo.
+        lerp: 0.14,
+        wheelMultiplier: 1,
+        syncTouch: true,
+        touchMultiplier: 1.25,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      });
+      window.rhLenis = lenis;
+      document.documentElement.classList.add("rh-smooth");
+
+      // Pausa real en escenas grandes: cuando el borde inferior de una sección
+      // llega al borde inferior del viewport, Lenis se detiene 250 ms.
+      // No se aplica a la primera escena al cargar ni a bandas compactas.
+      //
+      // Están TODAS las cajas que miden una pantalla en su formato. Medidas las
+      // veintiséis secciones del sitio en cinco viewports, las únicas fuera son
+      // `.brands-strip` (entre 0,28 y 0,82 pantallas: es una tira de logos, no
+      // una caja) y la cabecera de cada página, que ya está detenida al cargar.
+      //
+      // Sin `main >`: al fijar una escena, ScrollTrigger la envuelve en un
+      // `.pin-spacer` y deja de ser hija de `main`. Con el prefijo se caían de
+      // la lista la galería editorial, el escaparate, los valores y el proceso
+      // del taller —las cuatro que se fijan— justo en pantalla grande, que es
+      // donde se fijan. En el teléfono, que no las fija, sí pausaban: de ahí
+      // que las dos versiones no coincidieran.
+      const pauseSectionSelector = [
+        ".hero",
+        "body:not(.page-home) .page-hero",
+        ".error-page",
+        ".ln-manifesto",
+        ".editorial-garage",
+        ".feature-hero",
+        ".home-showcase",
+        ".community-section",
+        ".home-location",
+        ".catalog-section",
+        ".pit-band",
+        ".service-catalog-section",
+        ".service-process-section",
+        ".service-cta-section",
+        ".about-story-section",
+        ".about-values-section",
+        ".about-vision-section",
+        ".contact-form-section",
+        ".legal-section",
+      ].join(",");
+
+      // En teléfono vertical la escena de contacto no cabe en una pantalla: el
+      // formulario y la ficha de la tienda se apilan y cada uno ocupa la suya
+      // (`css/format-parity.css`). Ahí la pausa deja de corresponder a la
+      // sección —sólo se detendría al final de las dos— y pasa a cada tarjeta.
+      const contactCardSelector =
+        ".page-contact .contact-form-section .info-grid > .reveal";
+      const splitContactScenes = window.matchMedia(
+        "(max-width: 599px) and (orientation: portrait)"
+      );
+      // Las tarjetas miden una pantalla menos su marco: al detenerlas con su
+      // borde inferior 16px por encima del pliegue quedan con el mismo aire
+      // arriba y abajo. Son los 16px que la hoja de estilos reserva alrededor.
+      const CONTACT_CARD_FRAME = 16;
+      let hasScrollIntent = false;
+      let sectionPauseActive = false;
+      const sectionPauseArmed = new WeakMap();
+      const sectionPreviousEdges = new WeakMap();
+
+      const markScrollIntent = () => {
+        hasScrollIntent = true;
+      };
+
+      // `pauseAtSectionEdge` corre en cada frame del scroll suave. Resolver ahí
+      // un selector de catorce partes, y preguntar `matches` sección por
+      // sección, era el gasto más caro del recorrido. La lista y sus dos rasgos
+      // fijos se calculan una vez y se rehacen sólo si `main` cambia de hijos.
+      let pauseSections = null;
+      const readPauseSections = () => {
+        if (!pauseSections) {
+          const splitContact = splitContactScenes.matches;
+          const selector = splitContact
+            ? `${pauseSectionSelector},${contactCardSelector}`
+            : pauseSectionSelector;
+          pauseSections = $$(selector)
+            .filter(
+              (section) =>
+                !(splitContact && section.matches(".contact-form-section"))
+            )
+            .map((section) => {
+              // El hueco que la escena ocupa en el flujo. Al fijarla,
+              // ScrollTrigger la mete en un `.pin-spacer` y la escena se queda
+              // quieta en pantalla: su borde inferior ya no dice nada del
+              // avance. El del espaciador sí, y cae donde la escena termina.
+              const parent = section.parentElement;
+              const box =
+                parent && parent.classList.contains("pin-spacer")
+                  ? parent
+                  : section;
+              return {
+                el: section,
+                box,
+                isHero: section.matches(".hero, .page-hero, .error-page"),
+                // El adelanto sólo tiene sentido mientras el escenario es
+                // sticky. En el teléfono el manifiesto se lee como contenido
+                // normal (`rh-mobile-motion`) y para donde todas las demás.
+                isManifesto:
+                  section.matches(".ln-manifesto") &&
+                  !document.documentElement.classList.contains(
+                    "rh-mobile-motion"
+                  ),
+                isContactCard:
+                  splitContact && section.matches(contactCardSelector),
+              };
+            });
+        }
+        return pauseSections;
+      };
+      const mainRegion = $("main");
+      if (mainRegion && "MutationObserver" in window) {
+        new MutationObserver(() => {
+          pauseSections = null;
+        }).observe(mainRegion, { childList: true });
+      }
+      // Al girar el teléfono la composición vuelve a una sola escena (o se
+      // parte de nuevo): la lista cacheada tiene que rehacerse.
+      const invalidatePauseSections = () => {
+        pauseSections = null;
+      };
+      if (typeof splitContactScenes.addEventListener === "function") {
+        splitContactScenes.addEventListener("change", invalidatePauseSections);
+      } else if (typeof splitContactScenes.addListener === "function") {
+        splitContactScenes.addListener(invalidatePauseSections);
+      }
+
+      const pauseAtSectionEdge = (instance) => {
+        const current = instance.scroll;
+        const viewportHeight = window.innerHeight;
+        const edgeTolerance = Math.min(42, viewportHeight * 0.05);
+        const sections = readPauseSections();
+
+        if (instance.direction <= 0) {
+          for (let index = 0; index < sections.length; index += 1) {
+            const entry = sections[index];
+            if (index === 0 && entry.isHero) continue;
+            if (entry.box.getBoundingClientRect().bottom - viewportHeight > edgeTolerance) {
+              sectionPauseArmed.set(entry.el, true);
+            }
+          }
+          return;
+        }
+
+        if (!hasScrollIntent || sectionPauseActive) return;
+
+        for (let index = 0; index < sections.length; index += 1) {
+          const entry = sections[index];
+          const section = entry.el;
+          const rect = entry.box.getBoundingClientRect();
+          const armed = sectionPauseArmed.get(section) ?? index > 0;
+          const edgeDistance = rect.bottom - viewportHeight;
+          const previousEdge = sectionPreviousEdges.get(section);
+          sectionPreviousEdges.set(section, edgeDistance);
+          const crossedViewportEdge = previousEdge > 0 && edgeDistance <= 0;
+          // El manifiesto usa un escenario sticky: si esperamos al píxel exacto
+          // del borde, el sticky empieza a liberarse y el texto sube antes de
+          // que llegue la pausa. Lo detenemos unos píxeles antes para mantener
+          // la composición fija y que la lectura sea limpia.
+          // Es decir: `pauseLead` detiene la escena ANTES del pliegue. Las
+          // tarjetas de contacto piden lo contrario —parar con su borde ya
+          // dentro, para verse enmarcadas—, así que su valor es negativo, y el
+          // marco cede si la tarjeta no cabe entera en pantallas muy bajas.
+          const pauseLead = entry.isManifesto
+            ? 32
+            : entry.isContactCard
+              ? -Math.min(
+                  CONTACT_CARD_FRAME,
+                  Math.max(0, viewportHeight - rect.height)
+                )
+              : 0;
+          const isNearViewportEdge = edgeDistance <= pauseLead && edgeDistance >= -edgeTolerance;
+
+          if (edgeDistance > edgeTolerance) {
+            sectionPauseArmed.set(section, armed || index > 0);
+          }
+
+          // La primera escena ya está detenida al cargar la página. Las demás
+          // se detienen cuando su borde inferior llega al borde inferior visible.
+          if (
+            entry.isHero ||
+            !armed ||
+            (!crossedViewportEdge && !isNearViewportEdge)
+          ) continue;
+
+          const target = Math.max(0, current + edgeDistance - pauseLead);
+          hasScrollIntent = false;
+          sectionPauseArmed.set(section, false);
+          sectionPauseActive = true;
+          lenis.scrollTo(target, { immediate: true });
+          lenis.stop();
+
+          window.setTimeout(() => {
+            sectionPauseActive = false;
+            lenis.start();
+          }, 250);
+          break;
+        }
+      };
+
+      window.addEventListener("wheel", markScrollIntent, { passive: true });
+      window.addEventListener("touchstart", markScrollIntent, { passive: true });
+      window.addEventListener("touchmove", markScrollIntent, { passive: true });
+      lenis.on("scroll", pauseAtSectionEdge);
+
+      // El menú y el carrito bloquean el scroll de la página mientras están
+      // abiertos; Lenis debe pararse o seguiría moviendo el fondo.
+      const syncLock = () => {
+        const locked =
+          document.body.classList.contains("menu-open") ||
+          document.body.classList.contains("cart-open") ||
+          document.body.classList.contains("overlay-open");
+        if (locked) lenis.stop();
+        else lenis.start();
+      };
+      new MutationObserver(syncLock).observe(document.body, {
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+
+      if (window.gsap && window.ScrollTrigger) {
+        lenis.on("scroll", window.ScrollTrigger.update);
+        window.gsap.ticker.add((time) => lenis.raf(time * 1000));
+        // Evita que un frame perdido provoque un salto brusco al recuperarse.
+        window.gsap.ticker.lagSmoothing(500, 33);
+      } else {
+        const raf = (time) => {
+          lenis.raf(time);
+          requestAnimationFrame(raf);
+        };
+        requestAnimationFrame(raf);
+      }
+
+      // Los anclas internos usan el mismo motor: un salto suave y consistente.
+      document.addEventListener("click", (event) => {
+        const link = event.target.closest('a[href^="#"]');
+        if (!link) return;
+        const id = link.getAttribute("href");
+        if (!id || id === "#") return;
+        const target = document.querySelector(id);
+        if (!target) return;
+        event.preventDefault();
+        lenis.scrollTo(target, { offset: -90, duration: 1.2 });
+      });
+    }
+  }
+
   /* ---------- Experiencia cinematográfica global ---------- */
 
   function initLandoExperience() {
-    // Lenis y las pausas de lectura aportan matiz con rueda o trackpad, pero
-    // en touch añaden una segunda cola al desplazamiento del navegador.
+    // Lo que queda aquí son las escenas fijadas, la cortina de ruta y los
+    // recorridos horizontales: trabajo de maquetación en cada cuadro del
+    // gesto. Eso sigue siendo de pantalla grande. El motor de scroll y las
+    // pausas ya no: viven en `initSmoothScrollAndPauses`, que corre en los
+    // dos formatos.
     if (MOBILE_VIEWPORT) return;
 
     const routeCurtain = document.createElement("div");
@@ -3199,234 +3476,6 @@
       routeCurtain.classList.remove("is-active");
     });
 
-    // Scroll suave con Lenis, la misma base que usa landonorris.com. Sustituye
-    // al hijacker de rueda anterior: Lenis interpola la posición real de scroll
-    // en lugar de cancelar el evento, así el trackpad conserva su inercia y la
-    // barra nativa sigue funcionando. ScrollTrigger se sincroniza con su tick
-    // para que las escenas con `scrub` vayan en el mismo frame, sin doble retraso.
-    if (!REDUCED && window.Lenis) {
-      // El teléfono usa el mismo motor que el escritorio. Se apagó en su día
-      // porque las escenas fijadas daban tirones al arrastrar, pero aquello no
-      // era Lenis: era un `ScrollTrigger.refresh()` en bucle disparado por el
-      // observer de `manifesto-timing-fix.js`. Arreglado el origen, `syncTouch`
-      // deja el dedo y las escenas con `scrub` en el mismo reloj, que es lo que
-      // da las pausas y el peso de la versión grande.
-      const lenis = new window.Lenis({
-        // Conserva la cola de scroll intencional, pero con menos frames de
-        // retraso para que el movimiento se sienta más directo.
-        lerp: 0.14,
-        wheelMultiplier: 1,
-        syncTouch: true,
-        touchMultiplier: 1.25,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      });
-      window.rhLenis = lenis;
-      document.documentElement.classList.add("rh-smooth");
-
-      // Pausa real en escenas grandes: cuando el borde inferior de una sección
-      // llega al borde inferior del viewport, Lenis se detiene 250 ms.
-      // No se aplica a la primera escena al cargar ni a bandas compactas.
-      const pauseSectionSelector = [
-        ".hero",
-        "body:not(.page-home) .page-hero",
-        "main > .ln-manifesto",
-        "main > .editorial-garage",
-        "main > .feature-hero",
-        "main > .home-showcase",
-        "main > .community-section",
-        "main > .home-location",
-        "main > .service-catalog-section",
-        "main > .service-process-section",
-        "main > .service-cta-section",
-        "main > .about-story-section",
-        "main > .about-values-section",
-        "main > .about-vision-section",
-        "main > .contact-form-section",
-        "main > .legal-section",
-      ].join(",");
-
-      // En teléfono vertical la escena de contacto no cabe en una pantalla: el
-      // formulario y la ficha de la tienda se apilan y cada uno ocupa la suya
-      // (`css/format-parity.css`). Ahí la pausa deja de corresponder a la
-      // sección —sólo se detendría al final de las dos— y pasa a cada tarjeta.
-      const contactCardSelector =
-        ".page-contact .contact-form-section .info-grid > .reveal";
-      const splitContactScenes = window.matchMedia(
-        "(max-width: 599px) and (orientation: portrait)"
-      );
-      // Las tarjetas miden una pantalla menos su marco: al detenerlas con su
-      // borde inferior 16px por encima del pliegue quedan con el mismo aire
-      // arriba y abajo. Son los 16px que la hoja de estilos reserva alrededor.
-      const CONTACT_CARD_FRAME = 16;
-      let hasScrollIntent = false;
-      let sectionPauseActive = false;
-      const sectionPauseArmed = new WeakMap();
-      const sectionPreviousEdges = new WeakMap();
-
-      const markScrollIntent = () => {
-        hasScrollIntent = true;
-      };
-
-      // `pauseAtSectionEdge` corre en cada frame del scroll suave. Resolver ahí
-      // un selector de catorce partes, y preguntar `matches` sección por
-      // sección, era el gasto más caro del recorrido. La lista y sus dos rasgos
-      // fijos se calculan una vez y se rehacen sólo si `main` cambia de hijos.
-      let pauseSections = null;
-      const readPauseSections = () => {
-        if (!pauseSections) {
-          const splitContact = splitContactScenes.matches;
-          const selector = splitContact
-            ? `${pauseSectionSelector},${contactCardSelector}`
-            : pauseSectionSelector;
-          pauseSections = $$(selector)
-            .filter(
-              (section) =>
-                !(splitContact && section.matches(".contact-form-section"))
-            )
-            .map((section) => ({
-              el: section,
-              isHero: section.matches(".hero, .page-hero"),
-              isManifesto: section.matches(".ln-manifesto"),
-              isContactCard: splitContact && section.matches(contactCardSelector),
-            }));
-        }
-        return pauseSections;
-      };
-      const mainRegion = $("main");
-      if (mainRegion && "MutationObserver" in window) {
-        new MutationObserver(() => {
-          pauseSections = null;
-        }).observe(mainRegion, { childList: true });
-      }
-      // Al girar el teléfono la composición vuelve a una sola escena (o se
-      // parte de nuevo): la lista cacheada tiene que rehacerse.
-      const invalidatePauseSections = () => {
-        pauseSections = null;
-      };
-      if (typeof splitContactScenes.addEventListener === "function") {
-        splitContactScenes.addEventListener("change", invalidatePauseSections);
-      } else if (typeof splitContactScenes.addListener === "function") {
-        splitContactScenes.addListener(invalidatePauseSections);
-      }
-
-      const pauseAtSectionEdge = (instance) => {
-        const current = instance.scroll;
-        const viewportHeight = window.innerHeight;
-        const edgeTolerance = Math.min(42, viewportHeight * 0.05);
-        const sections = readPauseSections();
-
-        if (instance.direction <= 0) {
-          for (let index = 0; index < sections.length; index += 1) {
-            const entry = sections[index];
-            if (index === 0 && entry.isHero) continue;
-            if (entry.el.getBoundingClientRect().bottom - viewportHeight > edgeTolerance) {
-              sectionPauseArmed.set(entry.el, true);
-            }
-          }
-          return;
-        }
-
-        if (!hasScrollIntent || sectionPauseActive) return;
-
-        for (let index = 0; index < sections.length; index += 1) {
-          const entry = sections[index];
-          const section = entry.el;
-          const rect = section.getBoundingClientRect();
-          const armed = sectionPauseArmed.get(section) ?? index > 0;
-          const edgeDistance = rect.bottom - viewportHeight;
-          const previousEdge = sectionPreviousEdges.get(section);
-          sectionPreviousEdges.set(section, edgeDistance);
-          const crossedViewportEdge = previousEdge > 0 && edgeDistance <= 0;
-          // El manifiesto usa un escenario sticky: si esperamos al píxel exacto
-          // del borde, el sticky empieza a liberarse y el texto sube antes de
-          // que llegue la pausa. Lo detenemos unos píxeles antes para mantener
-          // la composición fija y que la lectura sea limpia.
-          // Es decir: `pauseLead` detiene la escena ANTES del pliegue. Las
-          // tarjetas de contacto piden lo contrario —parar con su borde ya
-          // dentro, para verse enmarcadas—, así que su valor es negativo, y el
-          // marco cede si la tarjeta no cabe entera en pantallas muy bajas.
-          const pauseLead = entry.isManifesto
-            ? 32
-            : entry.isContactCard
-              ? -Math.min(
-                  CONTACT_CARD_FRAME,
-                  Math.max(0, viewportHeight - rect.height)
-                )
-              : 0;
-          const isNearViewportEdge = edgeDistance <= pauseLead && edgeDistance >= -edgeTolerance;
-
-          if (edgeDistance > edgeTolerance) {
-            sectionPauseArmed.set(section, armed || index > 0);
-          }
-
-          // La primera escena ya está detenida al cargar la página. Las demás
-          // se detienen cuando su borde inferior llega al borde inferior visible.
-          if (
-            entry.isHero ||
-            !armed ||
-            (!crossedViewportEdge && !isNearViewportEdge)
-          ) continue;
-
-          const target = Math.max(0, current + edgeDistance - pauseLead);
-          hasScrollIntent = false;
-          sectionPauseArmed.set(section, false);
-          sectionPauseActive = true;
-          lenis.scrollTo(target, { immediate: true });
-          lenis.stop();
-
-          window.setTimeout(() => {
-            sectionPauseActive = false;
-            lenis.start();
-          }, 250);
-          break;
-        }
-      };
-
-      window.addEventListener("wheel", markScrollIntent, { passive: true });
-      window.addEventListener("touchstart", markScrollIntent, { passive: true });
-      window.addEventListener("touchmove", markScrollIntent, { passive: true });
-      lenis.on("scroll", pauseAtSectionEdge);
-
-      // El menú y el carrito bloquean el scroll de la página mientras están
-      // abiertos; Lenis debe pararse o seguiría moviendo el fondo.
-      const syncLock = () => {
-        const locked =
-          document.body.classList.contains("menu-open") ||
-          document.body.classList.contains("cart-open") ||
-          document.body.classList.contains("overlay-open");
-        if (locked) lenis.stop();
-        else lenis.start();
-      };
-      new MutationObserver(syncLock).observe(document.body, {
-        attributes: true,
-        attributeFilter: ["class"],
-      });
-
-      if (window.gsap && window.ScrollTrigger) {
-        lenis.on("scroll", window.ScrollTrigger.update);
-        window.gsap.ticker.add((time) => lenis.raf(time * 1000));
-        // Evita que un frame perdido provoque un salto brusco al recuperarse.
-        window.gsap.ticker.lagSmoothing(500, 33);
-      } else {
-        const raf = (time) => {
-          lenis.raf(time);
-          requestAnimationFrame(raf);
-        };
-        requestAnimationFrame(raf);
-      }
-
-      // Los anclas internos usan el mismo motor: un salto suave y consistente.
-      document.addEventListener("click", (event) => {
-        const link = event.target.closest('a[href^="#"]');
-        if (!link) return;
-        const id = link.getAttribute("href");
-        if (!id || id === "#") return;
-        const target = document.querySelector(id);
-        if (!target) return;
-        event.preventDefault();
-        lenis.scrollTo(target, { offset: -90, duration: 1.2 });
-      });
-    }
 
     const g = window.gsap;
     const ST = window.ScrollTrigger;
