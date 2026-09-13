@@ -3049,6 +3049,22 @@ html.lando-anim .sec-title.rh-has-diacritic,
     min-height: 0 !important;
   }
 
+  /* El manifiesto sí conserva la misma escena de escritorio: la clase sólo
+     aparece cuando GSAP pudo montar su única línea de tiempo móvil. Así el
+     texto se mantiene anclado y progresa con el scroll, en vez de mostrarse
+     entero como un póster estático. */
+  html.rh-mobile-motion .ln-manifesto.rh-mobile-manifesto-motion {
+    height: auto !important;
+    min-height: 220svh !important;
+    overflow: visible !important;
+  }
+
+  html.rh-mobile-motion .ln-manifesto.rh-mobile-manifesto-motion .ln-manifesto-stage {
+    position: sticky !important;
+    top: 0 !important;
+    height: 100svh !important;
+  }
+
   html.rh-mobile-motion [data-lando-horizontal] {
     display: block !important;
     height: auto !important;
