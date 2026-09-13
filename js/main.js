@@ -2385,6 +2385,7 @@
           !!sec.querySelector(".steps[data-lando-htrack]") ||
           sec.matches(".editorial-garage, .home-showcase")
       );
+      initMarquees();
       return;
     }
 
@@ -2683,7 +2684,8 @@
        cubrir dos veces el ancho de pantalla para que el bucle no tenga
        costuras visibles.
        ================================================================== */
-    $$("[data-marquee]").forEach((host) => {
+    function initMarquees() {
+      $$("[data-marquee]").forEach((host) => {
       const track = host.querySelector("[data-marquee-track]");
       if (!track) return;
       const base = Number(host.dataset.marqueeSpeed || 40); // px/s
@@ -2808,7 +2810,10 @@
         boost = Math.max(-150, Math.min(150, boost + delta * 2.5 * dirAttr));
         }
       }, { passive: true });
-    });
+      });
+    }
+
+    initMarquees();
 
     /* ==================================================================
        7. Hero fijado: el hero se queda quieto mientras su contenido se aleja
