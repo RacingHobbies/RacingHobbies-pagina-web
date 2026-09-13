@@ -3389,4 +3389,21 @@ html.lando-anim .sec-title.rh-has-diacritic,
     min-height: 0 !important;
     align-self: stretch;
   }
+
+  /* A partir de ~920px de ancho la lista de datos se reparte en TRES columnas
+     y baja a 118px, con lo que deja de ser ella quien marca el alto de la
+     fila. El marco, que arriba renuncia al suyo para no imponerle 390px al
+     iframe, se quedaba entonces en los 150px de serie del iframe: el mapa
+     salia diminuto y bajo la rejilla quedaban 83px de hueco muerto.
+
+     Este minimo cubre ese caso y solo ese. Medido a 360, 390, 414 y 428 de
+     alto, la lista mide entre 218 y 223 y es mas alta que el 46% de la
+     pantalla, asi que ahi manda ella y la regla no hace nada; a 428 y 430,
+     que son los dos formatos donde la lista se desploma, sube el mapa de 152
+     a ~197. El 46% se queda deliberadamente por debajo del hueco disponible
+     (83px): aprovecha la mitad y deja el resto de respiro, en vez de apurar
+     hasta el borde y arriesgarse a empujar la seccion fuera de la pantalla. */
+  .page-home .home-location .map-card.map-loaded {
+    min-height: 46svh !important;
+  }
 }
