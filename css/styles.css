@@ -19040,6 +19040,14 @@ html.js img.img-failed {
     will-change: transform, opacity;
   }
 
+  /* Las fichas informativas se envuelven en `.rh-card` al activar el carril.
+     El envoltorio anula el padding de `.static-step-card`, por lo que el texto
+     quedaba al ras de los bordes en móvil. La imagen mantiene su sangrado y
+     el texto recupera el mismo aire lateral en cada paso. */
+  html.lando-anim [data-lando-htrack] > .rh-hcard.static-step-card .rh-card {
+    padding: 0 clamp(18px, 5vw, 24px) 22px !important;
+  }
+
   html.lando-anim [data-lando-htrack] .rh-card-num {
     position: absolute;
     top: 10px;
