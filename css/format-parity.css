@@ -3255,3 +3255,107 @@ html.lando-anim .sec-title.rh-has-diacritic,
     padding: 12px !important;
   }
 }
+
+/* ===========================================================================
+   UBICACIÓN EN EL TELÉFONO: EL MAPA SE CAMBIA POR UN BOTÓN
+   La tarjeta del mapa era el bulto de la sección: 195px de aviso de
+   consentimiento —pin, rótulo, titular y dos botones— para, al pulsarlo,
+   insertar un iframe de 390px que empujaba la sección medio viewport por
+   debajo del pliegue. Sumada a los seis datos, "Estamos en Quito" medía 845px
+   sobre una pantalla de 711 y la tarjeta quedaba siempre cortada.
+
+   En el teléfono el mapa incrustado no aporta: ocupa media pantalla, hay que
+   pedirlo a mano y, una vez cargado, se navega peor que abriendo la app de
+   mapas del propio móvil. Aquí la tarjeta se queda en lo único accionable:
+   "Cómo llegar" a ancho completo, que abre Google Maps fuera del sitio.
+   El aviso de consentimiento —y con él el botón "Cargar mapa"— se oculta, así
+   que nunca se inserta el iframe y no queda ninguna conexión externa que
+   consentir. El marcado no cambia: en tablet, escritorio y teléfono girado
+   sigue igual; girado hay ancho de sobra y la tarjeta es una columna entera
+   junto a los datos, así que allí se conservan el mapa y sus dos botones.
+   ========================================================================== */
+/* `.map-card svg` estira a ancho completo cualquier vector de la tarjeta: era
+   para el mapa dibujado que ya no existe. El pin del botón necesita tamaño
+   propio en todos los formatos, no sólo en el teléfono. */
+.page-home .home-location .map-card .map-cta svg {
+  width: 17px !important;
+  height: 17px !important;
+  flex: 0 0 auto;
+}
+
+.page-home .home-location .map-card .map-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+@media (max-width: 760px) and (orientation: portrait) {
+  .page-home .home-location .map-card {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .page-home .home-location .map-card .map-consent {
+    display: none !important;
+  }
+
+  /* Deja de flotar sobre el mapa: ahora ES la tarjeta. */
+  .page-home .home-location .map-card .map-cta {
+    position: static !important;
+    inset: auto !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100% !important;
+    min-height: 50px !important;
+    padding-inline: 18px !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.14em !important;
+    white-space: nowrap;
+  }
+}
+
+/* ===========================================================================
+   TELÉFONO GIRADO: EL MAPA CABE DENTRO DE SU TARJETA
+   Girado se conservan el mapa y sus dos botones, pero pulsar "Cargar mapa"
+   rompía la sección: el iframe trae 390px de alto fijos (430 en el formato
+   ancho) y la tarjeta pasaba de 241 a 392, con lo que "Estamos en Quito"
+   crecía de 375 a 538 —pantalla y media— y el resto se iba fuera.
+
+   La tarjeta es una columna de la rejilla: ya tiene el alto de la lista de
+   datos que tiene al lado. Basta con que el marco se lo imponga al iframe en
+   vez de recibirlo, y el mapa ocupa exactamente el hueco que ya existía.
+   ========================================================================== */
+@media (orientation: landscape) and (max-height: 560px) {
+  /* La rejilla alinea sus columnas a `start`, así que la tarjeta no recibe el
+     alto de la fila: hay que pedirlo. Sin el mapa no cambia nada —la tarjeta
+     ES la columna más alta—; con el mapa dentro es lo que le da los 229px de
+     la lista de datos en vez de quedarse en los 150 de serie del iframe. */
+  .page-home .home-location .map-card {
+    align-self: stretch !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Una rejilla de una sola celda: el marco estira el iframe hasta su alto.
+     Un `height: 100%` no serviría, porque para un porcentaje el alto que da
+     el estirado de la fila sigue siendo indefinido. */
+  .page-home .home-location .map-card.map-loaded {
+    display: grid !important;
+    grid-template: 1fr / 1fr;
+  }
+
+  .page-home .home-location .map-card > iframe {
+    height: auto !important;
+    min-height: 0 !important;
+    align-self: stretch;
+  }
+}
