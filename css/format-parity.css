@@ -3322,6 +3322,14 @@ html.lando-anim .sec-title.rh-has-diacritic,
   transform: scaleX(1) !important;
 }
 
+/* En escritorio, la escena de ubicación baja apenas para que la ceja y el
+   titular respiren por debajo del logo fijo sin alterar su composición. */
+@media (min-width: 900px) {
+  .page-home .home-location > .container {
+    transform: translateY(-2px);
+  }
+}
+
 /* En la escena de proceso en apaisado bajo no hay alto para convertir un
    titular que cabe en una línea en dos. Conserva su composición compacta sin
    afectar el origen común de la ceja y del bloque. */
