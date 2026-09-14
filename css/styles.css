@@ -20131,3 +20131,12 @@ html.js body main .race-sector.atmo-on > .race-art {
     margin-top: clamp(38px, 3vw, 46px);
   }
 }
+
+/* La cruz tipográfica se percibe ligeramente alta dentro de sus botones
+   circulares en iPhone. Este ajuste óptico deja el trazo en el centro visual
+   sin mover el botón ni alterar la versión de escritorio. */
+@media (max-width: 899px) {
+  .modal-close {
+    padding-top: 2px;
+  }
+}
