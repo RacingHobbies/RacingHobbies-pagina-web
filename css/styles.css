@@ -707,21 +707,6 @@ h3,
   mask-image: linear-gradient(105deg, transparent 4%, #000 45%, transparent 93%);
 }
 
-.page-home .hero::after {
-  content: "RACING SYSTEM  /  01";
-  position: absolute;
-  right: 14px;
-  bottom: 46%;
-  z-index: 1;
-  display: block !important;
-  color: rgba(245, 248, 255, 0.28);
-  font-size: 0.58rem;
-  font-weight: 800;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  writing-mode: vertical-rl;
-}
-
 .page-home .statement {
   color: var(--neo-ice) !important;
   font-family: "Archivo", Arial, sans-serif !important;
@@ -767,19 +752,6 @@ h3,
 
 .page-home .hero-machine {
   filter: drop-shadow(0 38px 70px rgba(0, 0, 0, 0.3));
-}
-
-.page-home .hero-machine::after {
-  content: "RACING HOBBIES // ECUADOR";
-  position: absolute;
-  top: -28px;
-  left: 1px;
-  z-index: 4;
-  display: block;
-  color: rgba(242, 242, 242, 0.58);
-  font-size: 0.57rem;
-  font-weight: 800;
-  letter-spacing: 0.19em;
 }
 
 .page-home .hero-machine-stage {
@@ -5438,19 +5410,6 @@ body::before {
     linear-gradient(rgba(77, 255, 80, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(77, 255, 80, 0.1) 1px, transparent 1px);
   background-size: auto, 64px 64px, 64px 64px;
-}
-
-.home-showcase::before {
-  content: "RACING / SELECT";
-  position: absolute;
-  top: 34px;
-  right: 4vw;
-  color: rgba(77, 255, 80, 0.13);
-  font-family: var(--font-display);
-  font-size: clamp(3rem, 8vw, 8rem);
-  letter-spacing: 0.05em;
-  line-height: 1;
-  pointer-events: none;
 }
 
 .tile {
@@ -14780,25 +14739,6 @@ body:not(.page-home) main > section > .container {
   z-index: 3;
 }
 
-/* Los carriles horizontales se envuelven en una capa al iniciar la animación;
-   por eso el selector no puede depender de que la sección siga siendo hija
-   directa de `main`. */
-body:not(.page-home) main section:not(.page-hero)::after {
-  content: attr(data-race-label);
-  position: absolute;
-  right: clamp(14px, 3vw, 48px);
-  top: clamp(96px, 11vw, 154px);
-  z-index: 1;
-  color: rgba(194, 194, 194, 0.13);
-  font-family: "Archivo", Arial, sans-serif;
-  font-size: clamp(2.5rem, 7vw, 7rem);
-  font-weight: 900;
-  letter-spacing: -0.06em;
-  line-height: 0.8;
-  pointer-events: none;
-  text-transform: uppercase;
-}
-
 body:not(.page-home) main > section:not(.page-hero)::before {
   content: "";
   position: absolute;
@@ -15221,12 +15161,6 @@ html.js body:not(.page-home) .rh-internal-item.rh-internal-in {
   body:not(.page-home) main > section:not(.page-hero) {
     min-height: auto;
     padding-block: 92px !important;
-  }
-
-  body:not(.page-home) main > section:not(.page-hero)::after {
-    top: 74px;
-    right: 14px;
-    font-size: clamp(2.2rem, 14vw, 4rem);
   }
 
   .page-about main > section:nth-of-type(2) .two-col > .reveal:first-child,

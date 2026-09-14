@@ -34,6 +34,6 @@ test('un carril móvil animado no conserva un scroll horizontal que compita con 
 test('las páginas publicadas solicitan la versión nueva de la corrección móvil', () => {
   pages.forEach((page) => {
     const source = fs.readFileSync(path.join(project, page), 'utf8');
-    assert.match(source, /format-parity\.css\?v=126/, page);
+    assert.match(source, /format-parity\.css\?v=127/, page);
   });
 });
