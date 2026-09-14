@@ -25,53 +25,20 @@ python3 -m http.server 8080
 
 ## Publicación
 
-### Vista de prueba segura en Cloudflare Pages
+### Producción en Cloudflare Pages
 
-La versión revisada está desplegada gratuitamente en
-<https://racing-hobbies-preview.pages.dev/>. Es una vista de prueba en
-Cloudflare Pages: no se compró ni conectó ningún dominio, no se modificaron DNS
-y no se añadió ningún método de pago. Las respuestas aplican las reglas de
-`_headers`, incluidas CSP estricta, HSTS, protección anti-clickjacking y
-políticas de permisos. Además, el subdominio gratuito lleva
-`X-Robots-Tag: noindex, nofollow` para que los buscadores no lo traten como el
-sitio comercial definitivo.
+El sitio se publica desde Cloudflare Pages y se actualiza automáticamente con
+cada cambio enviado a la rama `main` de
+[`RacingHobbies/RacingHobbies.github.io`](https://github.com/RacingHobbies/RacingHobbies.github.io).
+El proyecto usa `scripts/package-cloudflare.sh` como comando de compilación y
+publica exclusivamente `.cloudflare-pages/`; así no se exponen scripts, notas ni
+otros archivos de trabajo del repositorio.
 
-El proyecto se creó mediante **Direct Upload**, sin conceder a Cloudflare
-acceso al repositorio de GitHub. Para preparar una actualización manual:
+Cloudflare aplica las reglas de `_headers`, incluidas CSP estricta, HSTS,
+protección anti-clickjacking y políticas de permisos. GitHub Pages queda
+deshabilitado para que no haya una segunda copia pública del sitio.
 
-```bash
-./scripts/package-cloudflare.sh
-# subir el contenido de .cloudflare-pages/ en el proyecto
-# racing-hobbies-preview del panel de Cloudflare Pages
-```
-
-La salida de Cloudflare excluye `.htaccess`, que solo corresponde a Apache, y
-conserva `_headers`. Antes de subirla, el empaquetador valida archivos, rutas e
-integridad SRI. Direct Upload es apropiado para estas pruebas; si después se
-quieren despliegues automáticos desde GitHub, se crea un proyecto conectado al
-repositorio al pasar al dominio definitivo.
-
-Sube **solo los archivos del sitio**, nunca la carpeta entera: `.playwright-cli/`,
-`output/`, `.claude/` y `docs/` son material de trabajo (capturas, logs con trazas
-de error y rutas locales del equipo) y en GitHub Pages el repositorio es público.
-El `.gitignore` ya los excluye; para una carga manual usa
-`./scripts/package-production.sh`, extrae el comprimido indicado en una carpeta
-vacía y sube únicamente su contenido, incluidos los archivos ocultos. No subas
-el comprimido ni su manifiesto al directorio público. Consulta `SECURITY.md`
-para identificar el entregable verificado y los pendientes del hosting.
-
-### Publicación anterior en GitHub Pages
-
-En <https://racinghobbies.github.io/>, desde el repositorio
-[`RacingHobbies/RacingHobbies.github.io`](https://github.com/RacingHobbies/RacingHobbies.github.io)
-(rama `main`, carpeta raíz, HTTPS forzado).
-
-Es un repositorio *de organización* (`<org>.github.io`) a propósito: las páginas
-enlazan recursos con rutas absolutas de raíz (`/css/…`, `/js/…`), así que el sitio
-**solo funciona servido en la raíz del dominio**. Un repositorio normal lo
-publicaría bajo `/nombre-del-repo/` y todos los CSS, scripts e imágenes darían 404.
-
-Para actualizar basta con empujar a `main`; GitHub Pages reconstruye solo:
+Para actualizar basta con empujar a `main`:
 
 ```bash
 bash scripts/build-production.sh   # si tocaste css/*.css o js/*.js
@@ -90,23 +57,20 @@ git add -A && git commit -m "…" && git push
 | Hosting | ¿Lee `_headers`? | Qué protege al usuario |
 |---|---|---|
 | Netlify / Cloudflare Pages | **Sí** | Todo: CSP, HSTS, `X-Frame-Options`, `Permissions-Policy` |
-| **GitHub Pages** | **No, lo ignora** | Solo la `<meta>` CSP de cada HTML + `js/frame-guard.min.js` |
+| **GitHub Pages** (desactivado) | **No, lo ignora** | No se usa como hosting |
 | cPanel / Apache | No | Necesitaría un `.htaccess` equivalente |
 
-En GitHub Pages **no se pueden enviar cabeceras**. Estas defensas no existen ahí
-y no se pueden suplir desde el HTML, porque `<meta>` ignora `frame-ancestors`:
+En Cloudflare Pages las cabeceras de `_headers` se sirven junto con el sitio. Si
+alguna vez se activara GitHub Pages de nuevo, no podría enviar esas cabeceras ni
+suplirlas desde el HTML, porque `<meta>` ignora `frame-ancestors`:
 
-- **Anti-clickjacking** (`X-Frame-Options` / `frame-ancestors`) → suplido a medias
-  por `js/frame-guard.min.js`, que es un parche de cliente, no una garantía.
-- **HSTS** → activa al menos "Enforce HTTPS" en los ajustes de GitHub Pages.
+- **Anti-clickjacking** (`X-Frame-Options` / `frame-ancestors`).
+- **HSTS**.
 - **`Permissions-Policy`**, **COOP/CORP**.
 
-La solución real es poner **Cloudflare (plan gratuito)** delante del dominio y
-configurar ahí las cabeceras de `_headers`, migrar a Netlify/Cloudflare Pages o
-aplicar `.htaccess`/`nginx-security-headers.conf.example` en el servidor que
-controle el DNS. Comprueba el resultado en <https://securityheaders.com> y con
-`scripts/verify-production-security.sh`; el hosting real no debe asumirse por
-la documentación del repositorio.
+Comprueba el resultado en <https://securityheaders.com> y con
+`scripts/verify-production-security.sh`; el hosting real no debe asumirse por la
+documentación del repositorio.
 
 ## Estructura
 
@@ -136,9 +100,9 @@ la documentación del repositorio.
 | `assets/img/` | Fotos reales de productos y logos de marcas |
 | `assets/img/social/` | Pósters de los reels de Instagram que salen en "Lo que pasa en redes" |
 | `assets/fonts/` | Anton y Archivo (woff2 locales, licencia OFL) |
-| `_headers` | CSP, anti-clickjacking, permisos, HSTS y caché. **GitHub Pages lo ignora** |
-| `js/frame-guard.js` | Anti-clickjacking de cliente, porque GitHub Pages no manda cabeceras |
-| `.nojekyll` | Sin él, GitHub Pages descarta `.well-known/` y el `security.txt` da 404 |
+| `_headers` | CSP, anti-clickjacking, permisos, HSTS y caché en Cloudflare Pages |
+| `js/frame-guard.js` | Defensa adicional de cliente contra clickjacking |
+| `.nojekyll` | Conserva compatibilidad si se publica el paquete fuera de Cloudflare Pages |
 | `.gitignore` | Evita publicar capturas, logs y rutas locales en un repo público |
 | `site.webmanifest` | Metadatos de instalación y color del sitio |
 | `robots.txt` / `sitemap.xml` | Descubrimiento e indexación |
@@ -146,7 +110,7 @@ la documentación del repositorio.
 | `scripts/update-sri.sh` | Recalcula SRI y URLs de caché ligadas al contenido para CSS y JavaScript |
 | `scripts/update-csp-hashes.sh` | Recalcula los hashes CSP del JSON-LD y los propaga a los cuatro sitios que declaran la política |
 | `scripts/package-production.sh` | Genera una carpeta publicable y un comprimido único con manifiesto SHA-256 |
-| `scripts/package-cloudflare.sh` | Genera y valida `.cloudflare-pages/` para una carga directa, sin archivos exclusivos de Apache |
+| `scripts/package-cloudflare.sh` | Genera y valida `.cloudflare-pages/` para el despliegue automático, sin archivos exclusivos de Apache |
 
 ## Datos reales configurados
 
@@ -225,8 +189,7 @@ por Servientrega).
   hashes JSON-LD desactualizados y errores de sintaxis JavaScript.
 - Después de publicar, ejecuta `./scripts/verify-production-security.sh URL`;
   el despliegue debe aplicar realmente `_headers` y servir esta versión del
-  sitio. La vista gratuita actual supera la comprobación con
-  `https://racing-hobbies-preview.pages.dev/`.
+  sitio.
 - Las páginas informativas y los enlaces de contacto siguen siendo útiles sin
   JavaScript; catálogo dinámico, carrito y validación enriquecida requieren JS.
 
