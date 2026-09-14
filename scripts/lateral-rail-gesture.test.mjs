@@ -33,10 +33,22 @@ test('un píxel de dedo vale un píxel de carril en cualquier formato', () => {
 });
 
 test('el gesto no puede empujar el scroll fuera del carril', () => {
+  // El tramo del carril más el margen de entrada y salida, ni un píxel más:
+  // un barrido largo no debe llevarse por delante la sección vecina.
   assert.match(
     mainSource(),
-    /Math\.min\(st\.end, Math\.max\(st\.start, value\)\)/
+    /Math\.min\(st\.end \+ margin\(\), Math\.max\(st\.start - margin\(\), value\)\)/
   );
+});
+
+test('el gesto engancha desde antes del pin y sigue después', () => {
+  // Con el borde pegado al tramo fijado quedaba media pantalla muerta a cada
+  // lado. El margen es el mismo para las dos entradas, dedo y rueda.
+  const source = mainSource();
+  assert.match(source, /const margin = \(\) => Math\.round\(window\.innerHeight \* 0\.5\);/);
+  assert.match(source, /return y >= st\.start - margin\(\) && y <= st\.end \+ margin\(\);/);
+  // Las dos entradas del gesto, dedo y rueda, comparten el mismo margen.
+  assert.equal((source.match(/inRange\(\)/g) || []).length, 2, "las dos entradas del gesto");
 });
 
 test('el listener táctil puede cancelar el gesto y adelantarse a Lenis', () => {
@@ -68,6 +80,6 @@ test('el paquete publicado lleva el gesto, no sólo el fuente', () => {
 test('las páginas publicadas piden la versión nueva del paquete', () => {
   pages.forEach((page) => {
     const source = fs.readFileSync(path.join(project, page), 'utf8');
-    assert.match(source, /main\.min\.js\?v=133/, page);
+    assert.match(source, /main\.min\.js\?v=134/, page);
   });
 });

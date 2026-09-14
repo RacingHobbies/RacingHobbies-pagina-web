@@ -3408,9 +3408,23 @@
         const AXIS_LOCK = 8;
 
         const toScroll = (dx) => dx * travelFactor();
-        // El gesto mueve el carril, no la página: fuera de su tramo el scroll
-        // pertenece a la sección siguiente.
-        const clamp = (value) => Math.min(st.end, Math.max(st.start, value));
+
+        // El gesto no empieza ni acaba exactamente con el pin. Con el borde
+        // pegado al tramo fijado había media pantalla muerta a cada lado: el
+        // carril ya se ve llegar —o se acaba de soltar— y el dedo no responde
+        // todavía, o ha dejado de hacerlo. El margen deja que el barrido
+        // enganche desde un poco antes y siga valiendo un poco después, de
+        // media pantalla, que es lo que se tarda en entrar y salir de la
+        // escena en cualquier formato.
+        const margin = () => Math.round(window.innerHeight * 0.5);
+        // El gesto mueve el carril y su entrada, no la página entera: más allá
+        // del margen el scroll pertenece a la sección vecina.
+        const clamp = (value) =>
+          Math.min(st.end + margin(), Math.max(st.start - margin(), value));
+        const inRange = () => {
+          const y = scrollTarget();
+          return y >= st.start - margin() && y <= st.end + margin();
+        };
 
         // Se lee en cada gesto y no al construir: Lenis se monta en otra
         // función y puede no existir todavía —o no existir nunca, si su
@@ -3440,10 +3454,10 @@
         let lastX = 0;
 
         const onTouchStart = (event) => {
-          // Dos dedos son un zoom, y fuera del tramo fijado no hay carril que
-          // mover: en ambos casos el gesto se marca como ajeno y no se vuelve
-          // a mirar hasta el siguiente toque.
-          axis = event.touches.length === 1 && st.isActive ? null : "y";
+          // Dos dedos son un zoom, y fuera del tramo del carril —con su
+          // margen— no hay nada que mover: en ambos casos el gesto se marca
+          // como ajeno y no se vuelve a mirar hasta el siguiente toque.
+          axis = event.touches.length === 1 && inRange() ? null : "y";
           if (axis === "y") return;
           startX = lastX = event.touches[0].clientX;
           startY = event.touches[0].clientY;
@@ -3489,7 +3503,7 @@
         };
 
         const onWheel = (event) => {
-          if (!st.isActive) return;
+          if (!inRange()) return;
           const dx = event.deltaX;
           // Sólo el gesto claramente lateral. Un trackpad en diagonal sigue
           // siendo scroll de página, como en el resto del sitio.
