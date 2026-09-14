@@ -20256,3 +20256,33 @@ html.js body main .race-sector.atmo-on > .race-art {
     transition: none;
   }
 }
+
+/* ===========================================================================
+   AIRE ENTRE EL TITULAR Y SU PÁRRAFO DE ENTRADA
+
+   `.sec-sub` nace con `margin-top: 20px`, medidos desde la caja del titular.
+   Pero el subrayado verde del `.accent` es un pseudo-elemento absoluto que
+   cuelga `0.16em` POR DEBAJO de esa caja (bloque 3 del rediseño del acento),
+   y con un titular de 86px eso son casi 14px: de los 20 solo quedaban 6
+   visibles y el párrafo parecía pegado a la línea verde.
+
+   Peor aún, esos 20px eran también la separación entre los dos párrafos, así
+   que el titular no se leía como titular: todo tenía el mismo ritmo.
+
+   El resto de la página separa la línea verde de lo que viene después entre
+   22 y 48px (medido a 1440: 22 en los valores de Nosotros, 32 en el collage
+   de la portada, 39 en los destacados, 48 en los 4 pasos del taller). Este
+   `clamp` cae dentro de esa banda en todo el rango de escritorio y tableta
+   —entre 26 y 32px de línea a texto de 600px a 1920— porque el mínimo de
+   38px cubre el tramo donde el titular sigue siendo enorme (74-83px) pero
+   `3vw` ya se ha quedado corto.
+
+   Sólo afecta a los dos sitios donde un `.sec-title` va seguido de su
+   párrafo: la historia de Nosotros y el formulario de Contacto. El teléfono
+   en vertical queda fuera a propósito: ahí la escena se ajusta a `100svh` y
+   `format-parity.css` ya afina ese ritmo con su propio valor. */
+@media (min-width: 600px) {
+  .sec-title + .sec-sub {
+    margin-top: clamp(38px, 3vw, 46px);
+  }
+}
