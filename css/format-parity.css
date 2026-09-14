@@ -1569,30 +1569,6 @@ h1[data-reveal-lines] {
    ========================================================================== */
 
 /* ==========================================================================
-   LA BARRA DE PROGRESO SÓLO EXISTE MIENTRAS SU CARRIL ESTÁ ACTIVO
-   `.rh-hbar` se posiciona contra el `.container` del carril, que mide casi dos
-   pantallas. Al soltarse el pin la barra seguía ahí, barriendo el viewport
-   sola: una raya verde de 2px bajo el logo, sin fichas ni título alrededor.
-   El JS marca la sección con `rh-rail-live` mientras el carril está activo.
-   ========================================================================== */
-
-html.lando-anim .rh-hbar {
-  opacity: 0;
-  transition: opacity 0.28s ease;
-}
-
-html.lando-anim .rh-rail-live .rh-hbar {
-  opacity: 1;
-}
-
-/* Sin animación no hay pin ni barra que seguir: se queda visible como antes. */
-@media (prefers-reduced-motion: reduce) {
-  html.lando-anim .rh-hbar {
-    opacity: 1;
-  }
-}
-
-/* ==========================================================================
    FUERA EL VELO VERDE
    Tres capas distintas teñían de verde todo lo que hay debajo. Medido sobre
    los píxeles (desviación del canal verde respecto a la media de rojo y azul):
@@ -1730,13 +1706,12 @@ body .static-step-card .step-media::after {
 
 /* ==========================================================================
    MÓVIL: RITMO DE PANTALLA ÚNICO
-   Tres medidas, tres problemas distintos, todos del mismo origen: en móvil la
+   Dos medidas, dos problemas distintos, del mismo origen: en móvil la
    composición se dimensiona por ANCHO (vw) mientras la escena se dimensiona
    por ALTO (svh), así que nunca encajan.
 
      · Ficha del carril: 172 x 275 dentro de un carril de 570px de alto.
        296px muertos, el 52% del carril. En escritorio sobran 15.
-     · La barra de progreso del carril queda como una raya verde suelta.
      · Las secciones miden 734 / 844 / 854 px según su contenido, así que al
        hacer scroll siempre ves la cola de una y la cabeza de la siguiente.
    ========================================================================== */
@@ -1776,17 +1751,7 @@ body .static-step-card .step-media::after {
   }
 }
 
-@media (max-width: 899px) {
-  /* --- 2. Fuera la barra de progreso -----------------------------------
-     En una pantalla estrecha el propio desplazamiento de las fichas ya dice
-     dónde estás; la barra sólo aportaba una raya verde de 2px a todo lo
-     ancho, que es lo que se veía suelto bajo la cabecera. */
-  html.lando-anim .rh-hbar {
-    display: none !important;
-  }
-}
-
-/* --- 3. La filigrana del producto vuelve a ser filigrana ---------------
+/* --- 2. La filigrana del producto vuelve a ser filigrana ---------------
    En pantalla completa la palabra fantasma mide 345px contra los 90 del
    titular: 3.8 veces más grande, recortada por el borde, y se lee como
    textura de fondo. En móvil medía 117 contra 61 —menos del doble— y con el
@@ -1801,7 +1766,7 @@ body .static-step-card .step-media::after {
   }
 }
 
-/* --- 4. "Estamos en Quito" cabe en una pantalla ------------------------
+/* --- 3. "Estamos en Quito" cabe en una pantalla ------------------------
    Medía 854px sobre un viewport de 844: los últimos 10px de la tarjeta del
    mapa quedaban siempre fuera, y con ellos el borde inferior redondeado. */
 /* Sólo en vertical: en apaisado manda el bloque de pantallas bajas, que la
@@ -1817,7 +1782,7 @@ body .static-step-card .step-media::after {
   }
 }
 
-/* --- 5. La "barra verde" era la fila de botones "Agregar" --------------
+/* --- 4. La "barra verde" era la fila de botones "Agregar" --------------
    Medido: en pantalla completa el pie de la ficha de vitrina es una FILA
    (precio a la izquierda, botón a la derecha) y el botón ocupa el 34% de la
    ficha — el 9% de la pantalla. En móvil pasaba a COLUMNA con `stretch`, así
@@ -1852,7 +1817,7 @@ body .static-step-card .step-media::after {
   }
 }
 
-/* --- 6. El mismo hueco en los carriles de las páginas internas ---------
+/* --- 5. El mismo hueco en los carriles de las páginas internas ---------
    Medido en Nosotros y Servicio técnico: ficha de 172 x 275 dentro de un
    carril de 579px de alto — 304px muertos, el 52%. En pantalla completa la
    ficha mide 389 x 540. La ficha de proceso es foto + título + texto, así que
@@ -1944,7 +1909,7 @@ body .static-step-card .step-media::after {
   }
 }
 
-/* --- 7. La lista de datos en apaisado, a tres columnas -----------------
+/* --- 6. La lista de datos en apaisado, a tres columnas -----------------
    A 667x375 la sección de ubicación pedía 416px sobre un viewport de 375.
    El bulto es `.info-list`: seis datos en dos columnas son tres filas de
    ~90px. A lo ancho hay sitio de sobra —tres columnas salen a 210px cada

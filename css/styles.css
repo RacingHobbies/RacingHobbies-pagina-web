@@ -10096,26 +10096,6 @@ html.lando-anim [data-lando-htrack] .collage-item img {
   html.lando-anim [data-lando-htrack] .collage-item:hover .rh-card::before {
     opacity: 1.6;
   }
-
-  /* Barra de progreso de la galería */
-  html.lando-anim .rh-hbar {
-    position: absolute;
-    left: max(24px, 6vw);
-    right: max(24px, 6vw);
-    bottom: clamp(26px, 5vh, 52px);
-    height: 2px;
-    border-radius: 2px;
-    background: rgba(255, 255, 255, 0.12);
-    overflow: hidden;
-  }
-  html.lando-anim .rh-hbar-fill {
-    display: block;
-    height: 100%;
-    width: 100%;
-    transform: scaleX(0);
-    transform-origin: left center;
-    background: linear-gradient(90deg, #3dfe40, #74ff76);
-  }
 }
 
 /* --- Marquee infinito de marcas (32s lineal, como Lando) --- */
@@ -10993,14 +10973,6 @@ html.lando-anim [data-lando-htrack] .collage-caption small {
   color: var(--ln-accent) !important;
 }
 
-html.lando-anim .rh-hbar {
-  background: rgba(243, 242, 234, 0.16) !important;
-}
-
-html.lando-anim .rh-hbar-fill {
-  background: var(--ln-accent) !important;
-}
-
 /* --- Producto protagonista: escena clara a pantalla completa --- */
 .page-home .feature-hero {
   position: relative;
@@ -11162,10 +11134,6 @@ html.lando-anim .rh-hbar-fill {
 
   .page-home .home-showcase .vitrina-grid .tile {
     min-height: 520px !important;
-  }
-
-  html.lando-anim .page-home .home-showcase .rh-hbar {
-    bottom: 0 !important;
   }
 
   html.lando-anim .page-home .home-showcase .vitrina-grid .tile {
@@ -16129,10 +16097,6 @@ html.lando-anim [data-lando-htrack] .rh-card {
   border: 0 !important;
 }
 
-html.lando-anim .rh-hbar {
-  background: transparent !important;
-}
-
 html.lando-anim [data-lando-htrack] .collage-item img {
   filter: none !important;
   box-shadow: none !important;
@@ -18731,15 +18695,6 @@ body.rh-intro-release .rh-loader {
   html.lando-anim .page-home .home-showcase .vitrina-grid .tile .tile-media img {
     min-height: 0 !important;
   }
-
-  /* Barra de progreso: mismo carril y mismo pie en las dos secciones. */
-  html.lando-anim .page-home .editorial-garage .rh-hbar,
-  html.lando-anim .page-home .home-showcase .rh-hbar {
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    height: 2px !important;
-  }
 }
 
 /* ==========================================================================
@@ -19119,25 +19074,6 @@ html.js img.img-failed {
   html.lando-anim [data-lando-htrack] > .rh-hcard .tile-body,
   html.lando-anim [data-lando-htrack] > .rh-hcard .prod-body {
     flex: 0 0 auto !important;
-  }
-
-  /* --- Barra de progreso ------------------------------------------------ */
-  html.lando-anim .rh-hbar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: clamp(10px, 2svh, 30px);
-    height: 2px;
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  html.lando-anim .rh-hbar-fill {
-    display: block;
-    height: 100%;
-    width: 100%;
-    transform: scaleX(0);
-    transform-origin: left center;
   }
 }
 

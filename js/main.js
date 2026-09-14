@@ -3253,8 +3253,6 @@
           // de navegación): se degrada a cuadrícula y se sigue.
           sec.classList.remove("rh-rail-built");
           sec.removeAttribute("data-lando-horizontal");
-          const orphanBar = sec.querySelector(".rh-hbar");
-          if (orphanBar) orphanBar.remove();
           console.error("Galería horizontal no inicializada:", sec.className, err);
         }
       });
@@ -3305,32 +3303,6 @@
           card.appendChild(inner);
         });
 
-        // Barra de progreso de la galería. Cuelga del `.container`, no de la
-        // sección: así comparte el mismo carril que el titular y las tarjetas
-        // en vez de arrancar 60px más a la izquierda.
-        const bar = document.createElement("div");
-        bar.className = "rh-hbar";
-        bar.setAttribute("aria-hidden", "true");
-        bar.innerHTML = '<span class="rh-hbar-fill"></span>';
-        (sec.querySelector(":scope > .container") || sec).appendChild(bar);
-        const fill = bar.firstElementChild;
-
-        // La barra vive fuera de la fila para que no se desplace junto con las
-        // tarjetas. Su posición, sin embargo, debe seguir el borde inferior de
-        // esas tarjetas —no el borde del contenedor, que también incluye el
-        // titular y el espacio de la escena fijada.
-        const positionProgressBar = () => {
-          const firstCard = cards[0];
-          const barHeight = bar.offsetHeight || 2;
-          const container = sec.querySelector(":scope > .container") || sec;
-          if (!firstCard) return;
-          const cardBounds = firstCard.getBoundingClientRect();
-          const containerBounds = container.getBoundingClientRect();
-          bar.style.top = `${cardBounds.bottom - containerBounds.top - barHeight}px`;
-          bar.style.bottom = "auto";
-        };
-        positionProgressBar();
-
         // En móvil el último borde debe cerrar el carril: incluso un 10vw de
         // margen dejaba un hueco tras la ficha final que parecía otra tarjeta
         // vacía. El remate cinematográfico se conserva únicamente en escritorio.
@@ -3339,9 +3311,7 @@
         const distance = () =>
           Math.max(0, track.scrollWidth - window.innerWidth + tailGap());
         if (distance() < 300) {
-          // Sin recorrido no hay progreso que mostrar: la barra se quedaría
-          // fija en cero bajo una fila estática.
-          bar.remove();
+          // Sin recorrido no hay carril: la fila se queda como cuadrícula.
           sec.classList.remove("rh-rail-built");
           sec.removeAttribute("data-lando-horizontal");
           return;
@@ -3372,17 +3342,6 @@
             pin: true,
             anticipatePin: 1,
             invalidateOnRefresh: true,
-            onRefresh: positionProgressBar,
-            onUpdate: (self) => {
-              fill.style.transform = "scaleX(" + self.progress.toFixed(4) + ")";
-            },
-            // La barra vive en el `.container`, que es mucho más alto que la
-            // pantalla fijada, así que al soltarse el pin se quedaba colgada
-            // sola en una franja vacía: una raya verde bajo el logo sin nada
-            // alrededor. Sólo debe existir mientras su carril está activo.
-            onToggle: (self) => {
-              sec.classList.toggle("rh-rail-live", self.isActive);
-            },
           },
         });
 
