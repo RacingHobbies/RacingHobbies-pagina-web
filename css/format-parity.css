@@ -5,100 +5,10 @@
    la última en todas las páginas.
    ========================================================================== */
 
-/* --------------------------------------------------------------------------
-   1. Navegación 720–1079 px
-   A partir de 1080 la navegación es una píldora con borde, fondo translúcido
-   y enlaces de 0.67rem. Entre 720 y 1079 sólo la portada la mostraba, y lo
-   hacía desnuda: sin píldora, sin fondo y con el cuerpo bajado a 0.58rem, así
-   que el mismo menú se leía como otro componente. Aquí se reconstruye la
-   misma píldora, a escala, y se extiende al resto de páginas.
-   -------------------------------------------------------------------------- */
-@media (min-width: 720px) and (max-width: 1079px) {
-  .main-nav,
-  body.page-home .main-nav {
-    position: fixed !important;
-    top: 22px !important;
-    right: auto !important;
-    bottom: auto !important;
-    left: 50% !important;
-    z-index: 10023 !important;
-    display: block !important;
-    width: max-content !important;
-    height: auto !important;
-    max-height: none !important;
-    padding: 4px !important;
-    overflow: visible !important;
-    border: 1px solid var(--neo-line, rgba(198, 198, 198, 0.2)) !important;
-    border-radius: 15px 4px 15px 4px !important;
-    background: linear-gradient(135deg, rgba(23, 23, 23, 0.82), rgba(4, 4, 4, 0.76)) !important;
-    box-shadow: inset 0 1px rgba(255, 255, 255, 0.07), 0 16px 40px rgba(0, 0, 0, 0.2) !important;
-    backdrop-filter: blur(18px) saturate(145%);
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: translateX(-50%) !important;
-  }
-
-  .main-nav ul,
-  body.page-home .main-nav ul {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    width: max-content !important;
-    height: auto !important;
-    gap: 2px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .main-nav li {
-    margin: 0 !important;
-    border: 0 !important;
-  }
-
-  .main-nav a,
-  body.page-home .main-nav a {
-    display: block !important;
-    height: auto !important;
-    min-height: 0 !important;
-    padding: 9px 10px !important;
-    border-radius: 10px 3px 10px 3px !important;
-    color: rgba(245, 248, 255, 0.7) !important;
-    /* Por debajo de 900 la hoja base cambiaba los enlaces a la display
-       condensada: el mismo menú parecía otra marca. */
-    font-family: "Archivo", Arial, sans-serif !important;
-    font-size: 0.62rem !important;
-    font-weight: 780 !important;
-    letter-spacing: 0.09em !important;
-    line-height: 1.2 !important;
-    text-transform: uppercase !important;
-    white-space: nowrap !important;
-  }
-
-  /* Sin esto el subrayado deslizante de la versión compacta pintaba una línea
-     suelta bajo la píldora. */
-  .main-nav a::before,
-  .main-nav a::after,
-  body.page-home .main-nav a::before,
-  body.page-home .main-nav a::after {
-    display: none !important;
-  }
-
-  .site-header .main-nav a:hover,
-  .site-header .main-nav a:focus-visible {
-    color: var(--neo-ice, #f5f7ff) !important;
-    background: rgba(255, 255, 255, 0.07) !important;
-  }
-
-  .site-header .main-nav a[aria-current="page"] {
-    color: #2be72e !important;
-    background: rgba(43, 231, 46, 0.16) !important;
-    box-shadow: inset 0 -2px #2be72e !important;
-  }
-}
-
-/* Con la navegación visible entre 720 y 1079, el logo y las acciones vuelven
-   a las esquinas como en pantalla completa (el bloque compacto los centraba
-   y los dejaba pisando la píldora). */
+/* El logo y las acciones vuelven a las esquinas como en pantalla completa; el
+   bloque compacto los centraba. Nació para que no pisaran la píldora de
+   secciones, que ya se ha retirado, pero se mantiene: en esta franja las dos
+   esquinas siguen siendo la colocación que corresponde. */
 @media (min-width: 720px) and (max-width: 899px) {
   .site-header .logo,
   body.rh-intro-running .site-header .logo,

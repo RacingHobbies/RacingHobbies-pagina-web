@@ -268,47 +268,6 @@ body.rh-intro-complete .page-home .hero-proof {
   }
 }
 
-/* Keep the full navigation treatment wherever it still fits. */
-@media (min-width: 720px) and (max-width: 1079px) {
-  body.page-home .main-nav {
-    display: block !important;
-    position: fixed !important;
-    top: 22px !important;
-    left: 50% !important;
-    right: auto !important;
-    width: max-content !important;
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    opacity: 1 !important;
-    padding: 0 !important;
-    background: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    transform: translateX(-50%) !important;
-  }
-
-  body.page-home .main-nav ul {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    width: max-content !important;
-    height: auto !important;
-    gap: 0 !important;
-  }
-
-  body.page-home .main-nav a {
-    display: flex !important;
-    height: auto !important;
-    min-height: 0 !important;
-    padding: 10px 7px !important;
-    font-size: 0.58rem !important;
-    line-height: 1.2 !important;
-    letter-spacing: 0.08em !important;
-    white-space: nowrap !important;
-  }
-}
-
 /* The loader lands on the same brand center as the finished hero.
    Las duraciones y los retardos son los mismos que en escritorio (0.68s/0.08s
    de entrada y 0.56s/1.42s de salida): antes la marca salía 140 ms antes en

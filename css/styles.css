@@ -584,62 +584,6 @@ h3,
   height: 1px !important;
 }
 
-@media (min-width: 1080px) {
-  .main-nav {
-    position: fixed !important;
-    top: 26px;
-    left: 50%;
-    z-index: 10023;
-    display: block !important;
-    width: auto;
-    padding: 5px;
-    border: 1px solid var(--neo-line);
-    border-radius: 17px 5px 17px 5px;
-    background: linear-gradient(135deg, rgba(23, 23, 23, 0.82), rgba(4, 4, 4, 0.76));
-    box-shadow:
-      inset 0 1px rgba(255, 255, 255, 0.07),
-      0 16px 40px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(18px) saturate(145%);
-    transform: translateX(-50%);
-  }
-
-  .main-nav ul {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-  }
-
-  .main-nav a {
-    position: relative;
-    display: block;
-    padding: 11px 14px;
-    border-radius: 11px 3px 11px 3px;
-    color: rgba(245, 248, 255, 0.7);
-    font-size: 0.67rem;
-    font-weight: 780;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    transition: color 0.25s ease, background 0.35s ease, transform 0.35s var(--neo-ease);
-  }
-
-  .main-nav a::before,
-  .main-nav a::after {
-    display: none !important;
-  }
-
-  .main-nav a:hover,
-  .main-nav a[aria-current="page"] {
-    color: var(--neo-ice);
-    background: rgba(255, 255, 255, 0.07);
-    transform: translateY(-1px);
-  }
-
-  .main-nav a[aria-current="page"] {
-    color: var(--neo-orange-hot);
-    box-shadow: inset 0 -1px var(--neo-orange);
-  }
-}
-
 /* --- Menú inmersivo --- */
 .rh-nav-panel {
   color: var(--neo-ice);
@@ -10250,6 +10194,21 @@ body button {
   filter: none !important;
 }
 
+/* La píldora de secciones se retira: la navegación vive en el panel que abre
+   el botón de menú, que ya estaba disponible en TODOS los anchos —no solo en
+   móvil— así que la píldora era un segundo menú con los mismos cinco enlaces.
+
+   Esta regla ya existía; lo que la anulaba eran tres bloques que volvían a
+   sacarla (`@media (min-width: 1080px)` aquí, y las reconstrucciones a escala
+   de `home-responsive.css` y `format-parity.css` para 720-1079). Retirados
+   esos tres, esta pasa a mandar en todos los formatos.
+
+   El `<nav class="main-nav">` SIGUE en el HTML y no debe borrarse: es la
+   fuente de la que `main.js` copia los enlaces para construir el panel
+   (`sourceLinks`), y sin él la función sale antes de crearlo y el botón de
+   menú se queda sin nada que abrir. Por el mismo motivo se conserva la
+   excepción `html:not(.js) .main-nav`: sin JavaScript no hay panel, y
+   entonces esta navegación en línea es la única que queda. */
 .main-nav {
   display: none !important;
 }
@@ -12775,57 +12734,6 @@ body.rh-intro-complete .hero-proof {
   color: var(--neo-ice) !important;
   background: linear-gradient(145deg, rgba(32, 32, 32, 0.92), rgba(4, 4, 4, 0.9)) !important;
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.1), 0 14px 34px rgba(0, 0, 0, 0.24) !important;
-}
-
-@media (min-width: 1080px) {
-  .main-nav {
-    position: fixed !important;
-    top: 26px !important;
-    left: 50% !important;
-    z-index: 10023 !important;
-    display: block !important;
-    width: auto !important;
-    padding: 5px !important;
-    border: 1px solid var(--neo-line) !important;
-    border-radius: 17px 5px 17px 5px !important;
-    background: linear-gradient(135deg, rgba(23, 23, 23, 0.82), rgba(4, 4, 4, 0.76)) !important;
-    box-shadow: inset 0 1px rgba(255, 255, 255, 0.07), 0 16px 40px rgba(0, 0, 0, 0.2) !important;
-    backdrop-filter: blur(18px) saturate(145%);
-    transform: translateX(-50%) !important;
-  }
-
-  .main-nav ul {
-    display: flex !important;
-    align-items: center !important;
-    gap: 2px !important;
-  }
-
-  .main-nav a {
-    display: block !important;
-    padding: 11px 14px !important;
-    border-radius: 11px 3px 11px 3px !important;
-    color: rgba(245, 248, 255, 0.7) !important;
-    font-size: 0.67rem !important;
-    font-weight: 780 !important;
-    letter-spacing: 0.09em !important;
-    text-transform: uppercase !important;
-  }
-
-  .main-nav a::before,
-  .main-nav a::after {
-    display: none !important;
-  }
-
-  .main-nav a:hover,
-  .main-nav a[aria-current="page"] {
-    color: var(--neo-ice) !important;
-    background: rgba(255, 255, 255, 0.07) !important;
-  }
-
-  .main-nav a[aria-current="page"] {
-    color: var(--neo-orange-hot) !important;
-    box-shadow: inset 0 -1px var(--neo-orange) !important;
-  }
 }
 
 .btn {
