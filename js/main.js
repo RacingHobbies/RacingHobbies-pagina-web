@@ -3345,6 +3345,13 @@
           },
         });
 
+        // El carril también se arrastra de lado. No hay una segunda animación:
+        // el recorrido lo sigue moviendo el scroll, con la misma escena y el
+        // mismo `scrub`. El gesto sólo traduce píxeles de dedo a píxeles de
+        // scroll, así que las fichas entran y salen exactamente igual que
+        // bajando con el dedo o con la rueda.
+        attachLateralGesture(sec, scrollTween.scrollTrigger, travelFactor);
+
         // Sin parallax de la foto dentro del marco. Lo hubo, pero nunca se vio:
         // las fotos de los pasos y los valores viven en `.step-media img`, que
         // la hoja de estilos fija con `transform: none !important`. GSAP
@@ -3375,6 +3382,140 @@
             duration: 1,
           });
         });
+      }
+
+      /* Barrido lateral sobre un carril ya montado.
+       *
+       * La escena reparte `distance()` píxeles de fichas sobre
+       * `distance() * travelFactor()` píxeles de scroll, así que un píxel de
+       * dedo vale `travelFactor()` de scroll y la fila sigue al dedo 1:1 en
+       * los dos formatos. Todo lo demás —la profundidad de cada ficha, el pin,
+       * las pausas— cuelga del scroll y no se entera de por dónde entró el
+       * movimiento: por eso el gesto no añade animación ninguna.
+       *
+       * Lenis casi no estorba. Con `gestureOrientation: "vertical"` suelta la
+       * rueda puramente horizontal, y `data-lenis-prevent-horizontal` —que ya
+       * está en los cuatro carriles— le hace soltar también el barrido del
+       * dedo. Lo que sí hace falta es adelantarse a él en los gestos
+       * diagonales, donde cada evento suelto puede caer de un lado o del otro:
+       * de eso se encarga la fase de captura, porque Lenis escucha en
+       * `window` en burbuja. */
+      function attachLateralGesture(sec, st, travelFactor) {
+        if (!st) return;
+
+        // Por debajo de este recorrido no se decide el eje: un toque no es un
+        // barrido, y un dedo que sólo tiembla no debe mover el carril.
+        const AXIS_LOCK = 8;
+
+        const toScroll = (dx) => dx * travelFactor();
+        // El gesto mueve el carril, no la página: fuera de su tramo el scroll
+        // pertenece a la sección siguiente.
+        const clamp = (value) => Math.min(st.end, Math.max(st.start, value));
+
+        // Se lee en cada gesto y no al construir: Lenis se monta en otra
+        // función y puede no existir todavía —o no existir nunca, si su
+        // vendor no llegó a cargar.
+        const scrollTarget = () => {
+          const lenis = window.rhLenis;
+          return lenis ? lenis.targetScroll : window.scrollY;
+        };
+
+        // `programmatic: false` es lo que Lenis usa para sus propios gestos:
+        // fija el destino y deja que el lerp lo alcance. Sin `force`, a
+        // propósito: mientras el scroll está bloqueado —menú, carrito, la
+        // pausa de 250 ms entre secciones— el barrido lateral se queda quieto,
+        // igual que se queda el vertical.
+        const pushScroll = (value, lerp) => {
+          const lenis = window.rhLenis;
+          if (!lenis) {
+            window.scrollTo(0, clamp(value));
+            return;
+          }
+          lenis.scrollTo(clamp(value), { programmatic: false, lerp });
+        };
+
+        let axis = null;
+        let startX = 0;
+        let startY = 0;
+        let lastX = 0;
+
+        const onTouchStart = (event) => {
+          // Dos dedos son un zoom, y fuera del tramo fijado no hay carril que
+          // mover: en ambos casos el gesto se marca como ajeno y no se vuelve
+          // a mirar hasta el siguiente toque.
+          axis = event.touches.length === 1 && st.isActive ? null : "y";
+          if (axis === "y") return;
+          startX = lastX = event.touches[0].clientX;
+          startY = event.touches[0].clientY;
+        };
+
+        const onTouchMove = (event) => {
+          if (axis === "y" || event.touches.length !== 1) return;
+          const touch = event.touches[0];
+          if (!axis) {
+            const dx = Math.abs(touch.clientX - startX);
+            const dy = Math.abs(touch.clientY - startY);
+            if (Math.max(dx, dy) < AXIS_LOCK) return;
+            axis = dx > dy ? "x" : "y";
+            // El umbral no se pierde: se aplica entero en este primer frame, o
+            // el recorrido del dedo y el del carril dejarían de coincidir.
+            lastX = startX;
+          }
+          if (axis !== "x") return;
+          if (event.cancelable) event.preventDefault();
+          event.stopPropagation();
+          const dx = lastX - touch.clientX;
+          lastX = touch.clientX;
+          // `lerp: 1` es el seguimiento píxel a píxel de `syncTouch`.
+          pushScroll(scrollTarget() + toScroll(dx), 1);
+        };
+
+        const onTouchEnd = () => {
+          const lenis = window.rhLenis;
+          if (axis === "x" && lenis) {
+            // La misma inercia que Lenis da al soltar un gesto vertical, con
+            // su propia velocidad: soltar el carril de lado pesa lo mismo que
+            // soltar la página.
+            const options = lenis.options || {};
+            const velocity = lenis.velocity || 0;
+            const inertia =
+              Math.sign(velocity) *
+              Math.abs(velocity) ** (options.touchInertiaExponent ?? 1.7);
+            if (inertia) {
+              pushScroll(lenis.targetScroll + inertia, options.syncTouchLerp ?? 0.075);
+            }
+          }
+          axis = null;
+        };
+
+        const onWheel = (event) => {
+          if (!st.isActive) return;
+          const dx = event.deltaX;
+          // Sólo el gesto claramente lateral. Un trackpad en diagonal sigue
+          // siendo scroll de página, como en el resto del sitio.
+          if (!dx || Math.abs(dx) <= Math.abs(event.deltaY)) return;
+          if (event.cancelable) event.preventDefault();
+          event.stopPropagation();
+          const options = (window.rhLenis && window.rhLenis.options) || {};
+          // Las mismas unidades que normaliza Lenis: hay ruedas que entregan
+          // líneas o páginas en lugar de píxeles.
+          const unit =
+            event.deltaMode === 1
+              ? 16.666666666666668
+              : event.deltaMode === 2
+                ? window.innerHeight
+                : 1;
+          pushScroll(
+            scrollTarget() + toScroll(dx * unit * (options.wheelMultiplier ?? 1)),
+            options.lerp ?? 0.14
+          );
+        };
+
+        sec.addEventListener("touchstart", onTouchStart, { passive: true, capture: true });
+        sec.addEventListener("touchmove", onTouchMove, { passive: false, capture: true });
+        sec.addEventListener("touchend", onTouchEnd, { passive: true, capture: true });
+        sec.addEventListener("touchcancel", onTouchEnd, { passive: true, capture: true });
+        sec.addEventListener("wheel", onWheel, { passive: false, capture: true });
       }
     }
   }
