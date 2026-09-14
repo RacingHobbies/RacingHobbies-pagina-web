@@ -3378,3 +3378,12 @@ html.lando-anim .sec-title.rh-has-diacritic,
     transform: translateX(-50%) scaleX(1) !important;
   }
 }
+
+/* En escritorio a pantalla completa el logotipo fijo invade el comienzo del
+   titular del taller. Se desplaza la composición completa sólo en ese alto
+   compacto, conservando exactamente su retícula horizontal. */
+@media (min-width: 900px) and (orientation: landscape) and (max-height: 760px) {
+  .page-service .service-catalog-section > .container {
+    transform: translateY(clamp(18px, 3svh, 26px));
+  }
+}
