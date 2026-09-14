@@ -33,6 +33,18 @@ test('un carril móvil animado no conserva un scroll horizontal que compita con 
   );
 });
 
+test('el carril de categorías se puede montar antes de crear sus envoltorios en horizontal', () => {
+  const css = formatParitySource();
+  assert.match(
+    css,
+    /editorial-garage\[data-lando-horizontal\][\s\S]*?> \.collage-item[\s\S]*?width: max\(220px, min\(40vw, 300px\)\) !important;/
+  );
+  assert.match(
+    css,
+    /editorial-garage\.rh-rail-built > \.container,[\s\S]*?grid-template-columns: minmax\(178px, 0\.82fr\) minmax\(0, 2fr\) !important;/
+  );
+});
+
 test('las páginas publicadas solicitan la versión ligada al contenido de la corrección móvil', () => {
   const version = cacheVersion('css/format-parity.css');
   pages.forEach((page) => {

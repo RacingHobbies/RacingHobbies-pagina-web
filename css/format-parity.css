@@ -384,6 +384,18 @@
    fuera las ventanas de 600 y 700 px, que ya funcionaban.
    ========================================================================== */
 @media (orientation: landscape) and (max-height: 500px) {
+  /* `main.js` decide si monta el carril ANTES de añadir `.rh-hcard`. Hasta
+     entonces las tarjetas conservan sólo `.collage-item` y se medían a 176px
+     en 844 × 390: los cinco elementos no alcanzaban los 300px de recorrido
+     mínimo y la escena se descartaba, dejando la cuadrícula móvil vertical
+     en mitad de la pantalla. La medida de prearranque debe ser la misma que
+     recibe la tarjeta ya construida unas reglas más abajo. */
+  html.lando-anim .page-home .editorial-garage[data-lando-horizontal]
+    [data-lando-htrack] > .collage-item {
+    width: max(220px, min(40vw, 300px)) !important;
+    flex: 0 0 auto !important;
+  }
+
   /* --- Carriles horizontales (categorías y vitrina) ------------------- */
   html.lando-anim [data-lando-horizontal] {
     padding-block: 10svh 4svh !important;
@@ -429,10 +441,45 @@
      escena se fije. Salía un carril corto, se desactivaba, y con él se caía
      el `height: 100svh` de la sección. */
   html.lando-anim .page-home [data-lando-htrack] > .rh-hcard {
-    width: max(220px, calc(56svh * 0.78)) !important;
+    width: max(220px, min(40vw, 300px)) !important;
     max-width: none !important;
     height: 100% !important;
     max-height: none !important;
+  }
+
+  /* En vertical la cabecera va encima del carril. Con sólo 390px de alto esa
+     suma dejaba a las tarjetas una banda de 137px: la foto se reducía a una
+     miniatura y se cortaban los controles. En apaisado hay ancho de sobra,
+     así que ambos elementos comparten la escena. Reservar la franja del logo
+     evita que el titular nazca debajo de él y el carril conserva el mismo
+     movimiento ligado al scroll; sólo cambia su encuadre. */
+  html.lando-anim .page-home .editorial-garage.rh-rail-built > .container,
+  html.lando-anim .page-home .home-showcase.rh-rail-built > .container {
+    display: grid !important;
+    grid-template-columns: minmax(178px, 0.82fr) minmax(0, 2fr) !important;
+    align-items: stretch !important;
+    column-gap: clamp(18px, 2.8vw, 28px) !important;
+    padding-left: clamp(116px, 14vw, 132px) !important;
+  }
+
+  html.lando-anim .page-home .editorial-garage.rh-rail-built .sec-head,
+  html.lando-anim .page-home .home-showcase.rh-rail-built .vitrina-head {
+    align-self: start !important;
+    margin-bottom: 0 !important;
+  }
+
+  html.lando-anim .page-home .home-showcase.rh-rail-built .vitrina-head {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 14px !important;
+  }
+
+  html.lando-anim .page-home .editorial-garage.rh-rail-built [data-lando-htrack],
+  html.lando-anim .page-home .home-showcase.rh-rail-built [data-lando-htrack] {
+    min-width: 0 !important;
+    height: 100% !important;
+    align-self: stretch !important;
   }
 
   /* --- Ficha destacada: vuelve a dos columnas ------------------------- */
