@@ -722,26 +722,16 @@
     const revealTrack = (track) => {
       $$(".reveal:not(.in)", track).forEach((item) => {
         item.classList.add("in");
+        item.style.setProperty("--rv", "1");
         if (revealObserver) revealObserver.unobserve(item);
       });
     };
 
-    if (REDUCED || !("IntersectionObserver" in window)) {
-      tracks.forEach(revealTrack);
-      return;
-    }
-
-    const trackObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          revealTrack(entry.target);
-          trackObserver.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.08, rootMargin: "0px 0px 12% 0px" }
-    );
-    tracks.forEach((track) => trackObserver.observe(track));
+    // Estas fichas las desplaza una escena fijada y no llegan al viewport con
+    // un scroll vertical normal. Esperar al IntersectionObserver podía dejarlas
+    // transparentes durante todo el recorrido, que parecía una tarjeta extra
+    // vacía. El movimiento propio del carril mantiene la entrada en profundidad.
+    tracks.forEach(revealTrack);
   }
 
   /* ---------- Aparición conducida por el scroll ----------
