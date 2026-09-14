@@ -3280,3 +3280,101 @@ html.lando-anim .sec-title.rh-has-diacritic,
     min-height: 46svh !important;
   }
 }
+
+/* ===========================================================================
+   V127 — RETÍCULA ÚNICA PARA TITULARES EDITORIALES
+   ---------------------------------------------------------------------------
+   Las escenas de categorías, vitrina, ubicación, taller, proceso y valores
+   comparten el mismo lenguaje (ceja, titular blanco, palabra verde y trazo),
+   pero cada una heredaba un ancho distinto. Eso movía el inicio de la palabra
+   verde y de su subrayado de una sección a otra, aunque parecieran la misma
+   pieza gráfica.
+
+   Esta es la única caja de composición para esa familia: la ceja y el titular
+   nacen del borde del contenedor; el acento ocupa siempre el segundo renglón;
+   y su subrayado vuelve a anclarse a la izquierda, no al centro de la palabra.
+   La medida tiene un tope editorial para que los títulos cortos no se estiren,
+   pero nunca desborda la pantalla disponible.
+   ========================================================================== */
+:root {
+  --rh-editorial-heading-width: min(100%, 42rem);
+}
+
+.page-home .editorial-garage .sec-head,
+.page-home .home-showcase .vitrina-head,
+.page-home .home-location .sec-head,
+.page-service .service-catalog-section .sec-head,
+.page-service .service-process-section .sec-head,
+.page-about .about-values-section .sec-head {
+  inline-size: var(--rh-editorial-heading-width) !important;
+  max-inline-size: var(--rh-editorial-heading-width) !important;
+  margin-inline: 0 !important;
+  padding-inline: 0 !important;
+}
+
+.page-home .editorial-garage .sec-title,
+.page-home .home-showcase .sec-title,
+.page-home .home-location .sec-title,
+.page-service .service-catalog-section .sec-title,
+.page-service .service-process-section .sec-title,
+.page-about .about-values-section .sec-title {
+  inline-size: var(--rh-editorial-heading-width) !important;
+  max-inline-size: var(--rh-editorial-heading-width) !important;
+  margin-inline: 0 !important;
+  text-wrap: balance !important;
+}
+
+.page-home .editorial-garage .sec-title .accent,
+.page-home .home-showcase .sec-title .accent,
+.page-home .home-location .sec-title .accent,
+.page-service .service-catalog-section .sec-title .accent,
+.page-service .service-process-section .sec-title .accent,
+.page-about .about-values-section .sec-title .accent {
+  display: block !important;
+  inline-size: fit-content;
+  margin-inline: 0 !important;
+}
+
+.page-home .editorial-garage .sec-title .accent::after,
+.page-home .home-showcase .sec-title .accent::after,
+.page-home .home-location .sec-title .accent::after,
+.page-service .service-catalog-section .sec-title .accent::after,
+.page-service .service-process-section .sec-title .accent::after,
+.page-about .about-values-section .sec-title .accent::after {
+  left: 0 !important;
+  right: auto !important;
+  transform: scaleX(0) !important;
+  transform-origin: left center !important;
+}
+
+.page-home .editorial-garage .reveal.in .sec-title .accent::after,
+.page-home .home-showcase .reveal.in .sec-title .accent::after,
+.page-home .home-location .reveal.in .sec-title .accent::after,
+.page-service .service-catalog-section .reveal.in .sec-title .accent::after,
+.page-service .service-process-section .reveal.in .sec-title .accent::after,
+.page-about .about-values-section .reveal.in .sec-title .accent::after {
+  transform: scaleX(1) !important;
+}
+
+/* En la escena de proceso en apaisado bajo no hay alto para convertir un
+   titular que cabe en una línea en dos. Conserva su composición compacta sin
+   afectar el origen común de la ceja y del bloque. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .page-service .service-process-section .sec-title .accent {
+    display: inline-block !important;
+  }
+
+  .page-service .service-process-section .sec-title .accent::after,
+  .page-service .service-process-section .reveal.in .sec-title .accent::after {
+    left: 50% !important;
+    transform-origin: center !important;
+  }
+
+  .page-service .service-process-section .sec-title .accent::after {
+    transform: translateX(-50%) scaleX(0) !important;
+  }
+
+  .page-service .service-process-section .reveal.in .sec-title .accent::after {
+    transform: translateX(-50%) scaleX(1) !important;
+  }
+}
