@@ -447,14 +447,14 @@
   }
 
   function buildOrderLink() {
-    const lines = ["¡Hola Racing Hobbies! Quiero hacer este pedido:", ""];
+    const lines = ["Hola, quisiera realizar el siguiente pedido:", ""];
     cart.forEach((it) => {
       const p = getProduct(it.id);
       if (!p) return;
       lines.push(`- ${it.qty} × ${p.name} — ${formatUSD(p.price * it.qty)}`);
     });
     lines.push("", "Total: " + formatUSD(cartTotal()));
-    lines.push("", "¿Me confirman disponibilidad y formas de pago? ¡Gracias!");
+    lines.push("", "Por favor, confirmen disponibilidad y formas de pago. Gracias.");
     return waLink(lines.join("\n"));
   }
 
@@ -1125,7 +1125,7 @@
     $$("[data-wa-link]").forEach((a) => {
       const msg =
         a.dataset.waLink ||
-        "¡Hola Racing Hobbies! Quiero más información sobre sus productos.";
+        "Hola, quisiera más información sobre sus productos.";
       a.href = waLink(msg);
     });
     $$("[data-tel-link]").forEach((a) => {

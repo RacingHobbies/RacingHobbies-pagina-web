@@ -86,7 +86,7 @@
       const message = fields.message.el.value.trim();
 
       const lines = [
-        "¡Hola Racing Hobbies!",
+        "Hola,",
         "",
         "Nombre: " + name,
         "Teléfono: " + phone,
@@ -106,7 +106,7 @@
         return;
       }
       popup.opener = null;
-      showToast("Abriendo WhatsApp con tu mensaje… 🏁");
+      showToast("Abriendo WhatsApp con tu mensaje.");
       form.reset();
       updateMessageCount();
       Object.keys(fields).forEach((key) => setValidity(key, true));

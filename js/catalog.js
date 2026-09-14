@@ -350,9 +350,9 @@
           cta.target = "_blank";
           cta.rel = "noopener noreferrer";
           const asked = state.query
-            ? `Estoy buscando: ${state.query}.`
-            : "Estoy buscando un producto que no veo en el catálogo.";
-          cta.href = waLink(`¡Hola Racing Hobbies! ${asked} ¿Lo consiguen?`);
+            ? `Busco el producto: ${state.query}.`
+            : "Busco un producto que no figura en el catálogo.";
+          cta.href = waLink(`Hola, ${asked} ¿Podrían conseguirlo?`);
           cta.append(
             document.createTextNode("Pídelo por WhatsApp "),
             Object.assign(document.createElement("span"), {
