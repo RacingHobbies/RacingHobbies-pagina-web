@@ -19,7 +19,8 @@ command -v openssl >/dev/null 2>&1 || fail "OpenSSL es necesario para validar ha
 command -v sha256sum >/dev/null 2>&1 || fail "sha256sum es necesario para validar dependencias vendorizadas."
 bash -n scripts/verify-production-security.sh scripts/verify-domain-security.sh ||
   fail "La sintaxis de un verificador de seguridad es inválida."
-bash -n scripts/update-sri.sh scripts/build-production.sh scripts/package-production.sh scripts/package-cloudflare.sh ||
+bash -n scripts/update-sri.sh scripts/build-production.sh scripts/package-production.sh \
+  scripts/package-cloudflare.sh scripts/verify-build-freshness.sh ||
   fail "La sintaxis del flujo de build/SRI es inválida."
 
 html_files=( *.html )
@@ -176,6 +177,17 @@ if rg -n \
   fail "Se detectó una credencial o clave privada en el paquete publicado."
 fi
 
+# GitHub Pages publica el árbol versionado tal cual: lo que `.gitignore`
+# declara privado y aun así está versionado acaba servido en internet. Pasó con
+# `docs/`, que llegó a producción con la ruta local del equipo dentro.
+if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
+  tracked_ignored="$(git ls-files --cached --ignored --exclude-standard)"
+  if [[ -n "$tracked_ignored" ]]; then
+    printf '%s\n' "$tracked_ignored"
+    fail "Hay archivos versionados que .gitignore declara privados; GitHub Pages los publicaría."
+  fi
+fi
+
 secret_files="$(find . -maxdepth 3 -type f \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' \) -not -name '.env.example' -print)"
 if [[ -n "$secret_files" ]]; then
   printf '%s\n' "$secret_files"
@@ -196,10 +208,12 @@ if [[ -n "$missing_rel" ]]; then
   fail "Hay enlaces _blank sin noopener noreferrer."
 fi
 
-node --check js/main.js
-node --check js/catalog.js
-node --check js/contact.js
-node --check js/frame-guard.js
+# Todo JavaScript que el sitio sirve, no solo los cuatro históricos:
+# `config.js`, `data.js` y `manifesto-timing-fix.js` también se descargan.
+for script in js/*.js; do
+  [[ "$script" == *.min.js ]] && continue
+  node --check "$script"
+done
 
 # El <meta http-equiv> de cada página es el único CSP que rige en GitHub
 # Pages; \`_headers\`, \`.htaccess\` y el ejemplo de nginx cubren los otros

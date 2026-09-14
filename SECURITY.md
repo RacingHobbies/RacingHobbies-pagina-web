@@ -58,6 +58,7 @@ Ejecuta:
 ```bash
 ./scripts/build-production.sh
 ./scripts/security-audit.sh
+./scripts/verify-build-freshness.sh
 ./scripts/package-production.sh
 ```
 
@@ -72,6 +73,12 @@ CSP, hashes JSON-LD, iframes, scripts, enlaces externos, `security.txt` y
 sintaxis JavaScript. También rechaza JavaScript/CSS inline nuevo y recalcula
 SRI de todos los scripts y hojas CSS locales.
 Además verifica la integridad de los bundles vendorizados.
+También rechaza que se versione cualquier archivo que `.gitignore` declare
+privado: GitHub Pages sirve el árbol tal cual y lo publicaría igualmente.
+El tercer comando cierra un hueco distinto: la auditoría comprueba el SRI del
+artefacto minificado, pero no que ese artefacto derive del fuente auditado.
+`verify-build-freshness.sh` recompila con las versiones fijadas y compara byte
+a byte. Necesita red la primera vez, por eso va aparte de la auditoría.
 El build actualiza automáticamente esos hashes SRI mediante
 `scripts/update-sri.sh`.
 Para una publicación manual, extrae el archivo comprimido que indique el
