@@ -3171,6 +3171,12 @@ html.lando-anim .sec-title.rh-has-diacritic,
     margin: 0 !important;
     padding: 0 var(--rh-rail-gap, 22px) 0 0 !important;
     gap: var(--rh-rail-gap, 22px) !important;
+    /* El recorrido lo controla GSAP con `transform`. Si se conserva el
+       overflow táctil de la versión sin escena, Safari combina ambos offsets y
+       recorta la pista: parece que queda una ficha transparente al final. */
+    overflow: visible !important;
+    scroll-snap-type: none !important;
+    touch-action: pan-y;
   }
 }
 
