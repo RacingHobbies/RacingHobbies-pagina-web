@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Recalcula la integridad SRI de todos los scripts y estilos locales incluidos
-# por las páginas HTML. Se ejecuta después de cualquier build de producción.
+# Recalcula la integridad SRI y una URL de caché basada en el contenido para
+# todos los scripts y estilos locales incluidos por las páginas HTML. Se
+# ejecuta después de cualquier build de producción.
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_DIR"
 
@@ -29,19 +30,23 @@ for (const file of htmlFiles) {
     if (/^(?:https?:)?\/\//i.test(url)) {
       throw new Error(`${file}: recurso remoto no permitido para SRI local: ${url}`);
     }
-    const relative = url.split("?", 1)[0].replace(/^\/+/, "");
+    const relative = url.split(/[?#]/, 1)[0].replace(/^\/+/, "");
     if (!relative || !fs.existsSync(relative) || !fs.statSync(relative).isFile()) {
       throw new Error(`${file}: no existe el recurso SRI: ${relative}`);
     }
-    const digest = crypto
-      .createHash("sha256")
-      .update(fs.readFileSync(relative))
-      .digest("base64");
+    const data = fs.readFileSync(relative);
+    const digest = crypto.createHash("sha256").update(data).digest("base64");
+    // No reutilizar una URL cuando cambia su contenido. GitHub Pages y el
+    // navegador pueden conservar recursos durante unos minutos; con SRI, una
+    // copia anterior bajo la misma URL se rechaza y deja la página sin estilos.
+    const version = crypto.createHash("sha256").update(data).digest("hex").slice(0, 16);
+    const versionedUrl = url.split(/[?#]/, 1)[0] + `?v=${version}`;
     const integrity = `sha256-${digest}`;
-    if (/\bintegrity="[^"]*"/i.test(tag)) {
-      return tag.replace(/\bintegrity="[^"]*"/i, `integrity="${integrity}"`);
+    const versionedTag = tag.replace(attrPattern, `${match[1]}="${versionedUrl}"`);
+    if (/\bintegrity="[^"]*"/i.test(versionedTag)) {
+      return versionedTag.replace(/\bintegrity="[^"]*"/i, `integrity="${integrity}"`);
     }
-    return tag.replace(/>$/, ` integrity="${integrity}">`);
+    return versionedTag.replace(/>$/, ` integrity="${integrity}">`);
   });
   if (updated !== original) fs.writeFileSync(file, updated);
 }

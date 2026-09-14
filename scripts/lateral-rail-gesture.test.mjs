@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 /* El gesto lateral no anima el carril: lo lleva a la posición de scroll que ya
@@ -12,6 +13,7 @@ const project = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const mainSource = () => fs.readFileSync(path.join(project, 'js/main.js'), 'utf8');
 const mainBundle = () => fs.readFileSync(path.join(project, 'js/main.min.js'), 'utf8');
 const pages = ['index.html', 'nosotros.html', 'servicio-tecnico.html'];
+const cacheVersion = file => createHash('sha256').update(fs.readFileSync(path.join(project, file))).digest('hex').slice(0, 16);
 
 test('todos los carriles reciben el gesto lateral, no sólo algunos', () => {
   const source = mainSource();
@@ -77,9 +79,10 @@ test('el paquete publicado lleva el gesto, no sólo el fuente', () => {
   assert.match(bundle, /passive:!1,capture:!0/);
 });
 
-test('las páginas publicadas piden la versión nueva del paquete', () => {
+test('las páginas publicadas piden la versión ligada al contenido del paquete', () => {
+  const version = cacheVersion('js/main.min.js');
   pages.forEach((page) => {
     const source = fs.readFileSync(path.join(project, page), 'utf8');
-    assert.match(source, /main\.min\.js\?v=134/, page);
+    assert.match(source, new RegExp(`main\\.min\\.js\\?v=${version}`), page);
   });
 });

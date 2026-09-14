@@ -29,7 +29,31 @@ function fixture(t) {
 
 test('la protección 404 usa una ruta válida también en URLs anidadas', () => {
   const html = fs.readFileSync(path.join(project, '404.html'), 'utf8');
-  assert.match(html, /src="\/js\/frame-guard\.min\.js\?v=1"/);
+  const version = createHash('sha256')
+    .update(fs.readFileSync(path.join(project, 'js/frame-guard.min.js')))
+    .digest('hex')
+    .slice(0, 16);
+  assert.match(html, new RegExp(`src="/js/frame-guard\\.min\\.js\\?v=${version}"`));
+});
+
+test('cada estilo y script local usa una URL de caché ligada exactamente a su contenido', () => {
+  const pages = ['index.html', 'catalogo.html', 'contacto.html', 'nosotros.html',
+    'servicio-tecnico.html', 'garantia.html', 'privacidad.html', '404.html'];
+  for (const page of pages) {
+    const html = fs.readFileSync(path.join(project, page), 'utf8');
+    for (const [tag] of html.matchAll(/<(?:script|link)\b[^>]*>/gi)) {
+      const isScript = /^<script\b/i.test(tag);
+      const url = tag.match(/\b(?:src|href)="([^"]+)"/i)?.[1];
+      const stylesheet = /\brel="stylesheet"/i.test(tag);
+      if (!url || (!isScript && !stylesheet)) continue;
+      const relative = url.split(/[?#]/, 1)[0].replace(/^\/+/, '');
+      const expected = createHash('sha256')
+        .update(fs.readFileSync(path.join(project, relative)))
+        .digest('hex')
+        .slice(0, 16);
+      assert.equal(url, url.split(/[?#]/, 1)[0] + '?v=' + expected, `${page}: ${url}`);
+    }
+  }
 });
 
 test('CAA interpreta dig +short y no obliga a cambiar la CA del hosting', t => {

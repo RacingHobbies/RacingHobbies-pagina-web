@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const project = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -9,6 +10,7 @@ const mainSource = () => fs.readFileSync(path.join(project, 'js/main.js'), 'utf8
 const formatParitySource = () => fs.readFileSync(path.join(project, 'css/format-parity.css'), 'utf8');
 const pages = ['index.html', 'catalogo.html', 'contacto.html', 'nosotros.html',
   'servicio-tecnico.html', 'garantia.html', 'privacidad.html', '404.html'];
+const cacheVersion = file => createHash('sha256').update(fs.readFileSync(path.join(project, file))).digest('hex').slice(0, 16);
 
 test('el carril móvil termina en la última tarjeta sin un hueco añadido', () => {
   assert.match(
@@ -31,9 +33,10 @@ test('un carril móvil animado no conserva un scroll horizontal que compita con 
   );
 });
 
-test('las páginas publicadas solicitan la versión nueva de la corrección móvil', () => {
+test('las páginas publicadas solicitan la versión ligada al contenido de la corrección móvil', () => {
+  const version = cacheVersion('css/format-parity.css');
   pages.forEach((page) => {
     const source = fs.readFileSync(path.join(project, page), 'utf8');
-    assert.match(source, /format-parity\.css\?v=129/, page);
+    assert.match(source, new RegExp(`format-parity\\.css\\?v=${version}`), page);
   });
 });

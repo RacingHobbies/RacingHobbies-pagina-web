@@ -3353,3 +3353,11 @@ html.lando-anim .sec-title.rh-has-diacritic,
     transform: translateY(clamp(18px, 3svh, 26px));
   }
 }
+
+/* En móvil, el encabezado fijo puede invadir la ceja de esta sección. Se baja
+   el bloque completo sin modificar su retícula ni el resto de la página. */
+@media (max-width: 899px) and (orientation: portrait) {
+  .page-service .service-catalog-section > .container {
+    transform: translateY(36px);
+  }
+}
