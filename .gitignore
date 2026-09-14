@@ -10,6 +10,7 @@ Thumbs.db
 # con trazas de error y rutas absolutas del equipo.
 .playwright-cli/
 .claude/
+.superpowers/
 output/
 .release/
 .release-staging-*/
