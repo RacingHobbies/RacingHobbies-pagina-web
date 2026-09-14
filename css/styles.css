@@ -14780,8 +14780,11 @@ body:not(.page-home) main > section > .container {
   z-index: 3;
 }
 
-body:not(.page-home) main > section:not(.page-hero)::after {
-  content: "SECTOR " attr(data-race-sector);
+/* Los carriles horizontales se envuelven en una capa al iniciar la animación;
+   por eso el selector no puede depender de que la sección siga siendo hija
+   directa de `main`. */
+body:not(.page-home) main section:not(.page-hero)::after {
+  content: attr(data-race-label);
   position: absolute;
   right: clamp(14px, 3vw, 48px);
   top: clamp(96px, 11vw, 154px);
