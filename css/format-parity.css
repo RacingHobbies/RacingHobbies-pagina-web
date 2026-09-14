@@ -2435,25 +2435,17 @@ body .static-step-card .step-media::after {
     line-height: 1.36 !important;
   }
 
-  /* Historia: la escena ocupa una pantalla, como el resto de la página, pero
-     repartida — la tarjeta de texto arriba y la foto quedándose con todo el
-     alto sobrante en lugar de una franja de 150 px, que recortaba la mesa de
-     trabajo por la mitad. La altura es mínima, no fija: si el texto crece
-     (tipografía grande del sistema, línea de más al traducir) la escena se
-     estira en vez de recortar el contenido.
-
-     El ritmo se mide en `svh`, no en un `@media (max-height:)`: en Safari de
-     iPhone las consultas de alto usan el viewport grande (sin barras), así
-     que en un teléfono corto nunca se activaba el ajuste y la tarjeta se
-     comía la pantalla dejando la foto cortada. Con `svh` la tipografía y el
-     aire se miden contra el alto realmente visible. */
+  /* Historia: composición equilibrada para teléfonos. La escena tiene un alto
+     exacto y reparte el espacio entre una tarjeta de lectura cómoda y una foto
+     completa; así deja de extenderse más de una pantalla o de recortar el RC. */
   html body.page-about main > section.about-story-section {
     box-sizing: border-box;
     display: flex;
-    height: auto !important;
-    min-height: 100svh !important;
-    overflow: visible;
-    padding: clamp(62px, 10.6svh, 84px) 0 clamp(22px, 4.6svh, 34px) !important;
+    height: 100svh !important;
+    min-height: 0 !important;
+    max-height: 100svh !important;
+    overflow: hidden;
+    padding: clamp(48px, 7svh, 60px) 0 clamp(10px, 1.8svh, 16px) !important;
   }
 
   .page-about .about-story-section > .container {
@@ -2470,14 +2462,14 @@ body .static-step-card .step-media::after {
     flex-direction: column !important;
     min-height: 0;
     height: auto;
-    gap: clamp(10px, 2svh, 14px) !important;
+    gap: clamp(8px, 1.5svh, 12px) !important;
   }
 
   .page-about .about-story-section .two-col > .reveal:first-child {
     flex: 0 0 auto;
     min-height: 0;
     overflow: visible;
-    padding: clamp(14px, 2.4svh, 22px) 16px !important;
+    padding: clamp(12px, 2svh, 18px) 16px !important;
   }
 
   /* El rótulo lleva tilde y con 0.9 no le cabía: el acento de "CÓMO" se
@@ -2493,17 +2485,20 @@ body .static-step-card .step-media::after {
   .page-about .about-story-section .sec-sub {
     font-size: clamp(0.78rem, min(3.5vw, 1.95svh), 0.9rem) !important;
     line-height: 1.44 !important;
-    margin-top: clamp(8px, 1.7svh, 12px) !important;
+    margin-top: clamp(10px, 1.8svh, 14px) !important;
   }
 
-  /* La foto se queda con el alto que sobra de la escena, con un suelo para
-     que nunca vuelva a ser una franja. */
+  /* La figura usa el alto que sobra; la foto se contiene dentro de él en vez
+     de ampliar el recorte cuadrado que heredaba de la capa base. */
   .page-about .about-story-section .static-story-visual {
+    display: flex !important;
     flex: 1 1 0 !important;
+    flex-direction: column;
     height: auto !important;
-    min-height: clamp(120px, 19svh, 190px) !important;
+    min-height: 0 !important;
     max-width: none !important;
     margin: 0 !important;
+    overflow: hidden;
     /* Sin desplazamiento de parallax: la escena va justa de alto y ese medio
        centímetro de deriva sacaba la foto del margen inferior. */
     transform: none !important;
@@ -2511,9 +2506,19 @@ body .static-step-card .step-media::after {
 
   .page-about .about-story-section .static-story-visual img {
     width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    object-position: 50% 45% !important;
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
+    object-position: 50% 50% !important;
+  }
+
+  /* El pie repetía la idea del titular y robaba el alto que necesita la foto.
+     El texto principal sigue completo y la información editorial se conserva
+     en tablet y escritorio. */
+  .page-about .about-story-section .collage-caption {
+    display: none !important;
   }
 
   /* Contacto: el formulario se hace más compacto y la ficha de la tienda se
@@ -2648,7 +2653,7 @@ body .static-step-card .step-media::after {
    revelado tipográfico; sólo ajusta medidas, no sus transiciones. */
 @media (max-width: 599px) and (orientation: portrait) {
   html.lando-anim .page-about .about-story-section .two-col > .reveal:first-child {
-    padding: clamp(14px, 2.4svh, 22px) 16px !important;
+    padding: clamp(12px, 2svh, 18px) 16px !important;
   }
 
   html.lando-anim .page-about .about-story-section .sec-title {
@@ -2659,7 +2664,7 @@ body .static-step-card .step-media::after {
   html.lando-anim .page-about .about-story-section .sec-sub {
     font-size: clamp(0.78rem, min(3.5vw, 1.95svh), 0.9rem) !important;
     line-height: 1.44 !important;
-    margin-top: clamp(8px, 1.7svh, 12px) !important;
+    margin-top: clamp(10px, 1.8svh, 14px) !important;
   }
 
   /* Contacto: ritmo más compacto, con controles de al menos 44px para que
