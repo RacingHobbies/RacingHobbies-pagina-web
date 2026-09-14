@@ -3424,3 +3424,17 @@ html.lando-anim .sec-title.rh-has-diacritic,
     transform: translateY(32px);
   }
 }
+
+/* Una escena horizontal aprovecha todo el borde derecho; mantener las dos
+   utilidades fijas encima de ella ocultaba imágenes y zonas de toque. La
+   clase la activa ScrollTrigger sólo durante el tramo fijado y esta regla no
+   existe fuera de un teléfono girado. */
+@media (orientation: landscape) and (max-height: 500px) {
+  body.rh-rail-active .wa-float,
+  body.rh-rail-active .back-top {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transform: translate3d(76px, 0, 0) scale(0.82) !important;
+  }
+}

@@ -45,6 +45,14 @@ test('el carril de categorías se puede montar antes de crear sus envoltorios en
   );
 });
 
+test('los accesos flotantes no tapan tarjetas durante un carril móvil horizontal', () => {
+  assert.match(mainSource(), /document\.body\.classList\.toggle\("rh-rail-active", visible\)/);
+  assert.match(
+    formatParitySource(),
+    /@media \(orientation: landscape\) and \(max-height: 500px\) \{[\s\S]*?body\.rh-rail-active \.wa-float,[\s\S]*?body\.rh-rail-active \.back-top \{[\s\S]*?visibility: hidden !important;[\s\S]*?pointer-events: none !important;/
+  );
+});
+
 test('las páginas publicadas solicitan la versión ligada al contenido de la corrección móvil', () => {
   const version = cacheVersion('css/format-parity.css');
   pages.forEach((page) => {

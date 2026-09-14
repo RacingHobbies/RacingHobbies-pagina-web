@@ -3276,6 +3276,19 @@
         // portada; igualados los anchos en `format-parity.css` era un no-op, y
         // un no-op con una constante mágica dentro es peor que no tenerlo.
         const travelFactor = () => (window.innerWidth <= 899 ? 1 : 1.4);
+        // En un teléfono girado las dos utilidades fijas de la esquina
+        // derecha pisan la última tarjeta del carril. No desaparecen de la
+        // página: sólo se apartan mientras una escena horizontal está fija,
+        // que es el único momento en el que compiten con su contenido.
+        const setRailUtilitiesVisible = (visible) => {
+          if (
+            window.matchMedia(
+              "(orientation: landscape) and (max-height: 500px)"
+            ).matches
+          ) {
+            document.body.classList.toggle("rh-rail-active", visible);
+          }
+        };
         const scrollTween = g.to(track, {
           x: () => -distance(),
           ease: "none",
@@ -3287,6 +3300,10 @@
             pin: true,
             anticipatePin: 1,
             invalidateOnRefresh: true,
+            onEnter: () => setRailUtilitiesVisible(true),
+            onEnterBack: () => setRailUtilitiesVisible(true),
+            onLeave: () => setRailUtilitiesVisible(false),
+            onLeaveBack: () => setRailUtilitiesVisible(false),
           },
         });
 
