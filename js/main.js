@@ -2909,9 +2909,10 @@
       // deja el dedo y las escenas con `scrub` en el mismo reloj, que es lo que
       // da las pausas y el peso de la versión grande.
       const lenis = new window.Lenis({
-        // Conserva la cola de scroll intencional, pero con menos frames de
-        // retraso para que el movimiento se sienta más directo.
-        lerp: 0.14,
+        // En escritorio reducimos apenas la cola para que la rueda y el
+        // trackpad respondan un poco antes; en táctil conservamos el ritmo
+        // actual para que siga siendo uniforme con sus demás secciones.
+        lerp: MOBILE_VIEWPORT ? 0.14 : 0.15,
         wheelMultiplier: 1,
         syncTouch: true,
         // 1, no más: con `syncTouch` el contenido debe seguir al dedo píxel a
