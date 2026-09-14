@@ -3369,3 +3369,11 @@ html.lando-anim .sec-title.rh-has-diacritic,
     transform: translateY(36px);
   }
 }
+
+/* En escritorio alto, la composición completa baja apenas para que la ceja y
+   el titular se separen del logo fijo sin cambiar la retícula de las tarjetas. */
+@media (min-width: 900px) and (min-height: 761px) {
+  .page-service .service-catalog-section > .container {
+    transform: translateY(16px);
+  }
+}
