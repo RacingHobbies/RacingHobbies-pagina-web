@@ -3374,6 +3374,6 @@ html.lando-anim .sec-title.rh-has-diacritic,
    el titular se separen del logo fijo sin cambiar la retícula de las tarjetas. */
 @media (min-width: 900px) and (min-height: 761px) {
   .page-service .service-catalog-section > .container {
-    transform: translateY(16px);
+    transform: translateY(32px);
   }
 }
