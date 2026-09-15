@@ -35,21 +35,21 @@ test('un píxel de dedo vale un píxel de carril en cualquier formato', () => {
 });
 
 test('el gesto no puede empujar el scroll fuera del carril', () => {
-  // El tramo del carril más el margen de entrada y salida, ni un píxel más:
-  // un barrido largo no debe llevarse por delante la sección vecina.
+  // Ni un píxel antes ni después del tramo fijado: un barrido largo o su
+  // inercia no pueden llevarse la escena a la sección vecina.
   assert.match(
     mainSource(),
-    /Math\.min\(st\.end \+ margin\(\), Math\.max\(st\.start - margin\(\), value\)\)/
+    /Math\.min\(st\.end, Math\.max\(st\.start, value\)\)/
   );
 });
 
-test('el gesto engancha desde antes del pin y sigue después', () => {
-  // Con el borde pegado al tramo fijado quedaba media pantalla muerta a cada
-  // lado. El margen es el mismo para las dos entradas, dedo y rueda.
+test('el gesto lateral sólo se captura mientras el carril está fijado', () => {
+  // Fuera del pin el scroll pertenece a la sección vecina; no debe haber una
+  // zona extendida que permita sobrepasar el cierre del carril.
   const source = mainSource();
-  assert.match(source, /const margin = \(\) => Math\.round\(window\.innerHeight \* 0\.5\);/);
-  assert.match(source, /return y >= st\.start - margin\(\) && y <= st\.end \+ margin\(\);/);
-  // Las dos entradas del gesto, dedo y rueda, comparten el mismo margen.
+  assert.match(source, /const inRange = \(\) => st\.isActive;/);
+  assert.doesNotMatch(source, /st\.end \+ margin\(\)/);
+  // Las dos entradas del gesto, dedo y rueda, comparten ese límite.
   assert.equal((source.match(/inRange\(\)/g) || []).length, 2, "las dos entradas del gesto");
 });
 
