@@ -10,8 +10,8 @@ propio.
 - Sitio publicado: <https://racing-hobbies.pages.dev/>. Cloudflare Pages está
   conectado a `RacingHobbies/RacingHobbies.github.io`: cada push a `main`
   ejecuta el empaquetado y publica automáticamente la nueva versión.
-- GitHub Pages está despublicado y su fuente está configurada en `None`, por lo
-  que el repositorio no mantiene un segundo hosting público.
+- GitHub Pages está despublicado y usa GitHub Actions sin ningún flujo de Pages
+  configurado, por lo que el repositorio no mantiene un segundo hosting público.
 - Despliegue validado: **360 archivos, 8 páginas y 86 referencias SRI**. La
   variante de Cloudflare conserva `_headers` y excluye `.htaccess`, que solo
   corresponde a Apache.
