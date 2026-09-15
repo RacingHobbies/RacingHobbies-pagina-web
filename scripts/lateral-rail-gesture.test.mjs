@@ -68,6 +68,14 @@ test('el gesto vertical sigue siendo de Lenis', () => {
   assert.match(mainSource(), /if \(axis !== "x"\) return;/);
 });
 
+test('la rueda + Shift de Windows se traduce a desplazamiento lateral', () => {
+  // Chromium/Edge pueden enviar ese gesto con deltaY y shiftKey, sin deltaX.
+  // La compatibilidad no debe convertir una rueda vertical normal en lateral.
+  const source = mainSource();
+  assert.match(source, /event\.deltaX \|\| \(event\.shiftKey \? event\.deltaY : 0\)/);
+  assert.match(source, /!event\.shiftKey && Math\.abs\(dx\) <= Math\.abs\(event\.deltaY\)/);
+});
+
 test('el paquete publicado lleva el gesto, no sólo el fuente', () => {
   // Editar `main.js` sin recompilar no cambia nada de lo que sirve el sitio.
   // Las marcas son literales que sobreviven al minificador y que ANTES del

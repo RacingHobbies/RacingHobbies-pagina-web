@@ -3458,10 +3458,20 @@
 
         const onWheel = (event) => {
           if (!inRange()) return;
-          const dx = event.deltaX;
+          // En Windows, Chromium y Edge pueden representar la rueda + Shift
+          // como `deltaY` con `shiftKey`, aunque el gesto visual sea lateral.
+          // Sin este fallback el carril sólo respondía a trackpads que
+          // entregan un `deltaX` real.
+          const dx = event.deltaX || (event.shiftKey ? event.deltaY : 0);
           // Sólo el gesto claramente lateral. Un trackpad en diagonal sigue
-          // siendo scroll de página, como en el resto del sitio.
-          if (!dx || Math.abs(dx) <= Math.abs(event.deltaY)) return;
+          // siendo scroll de página, como en el resto del sitio; la rueda +
+          // Shift es la excepción explícita para los navegadores de Windows.
+          if (
+            !dx ||
+            (!event.shiftKey && Math.abs(dx) <= Math.abs(event.deltaY))
+          ) {
+            return;
+          }
           if (event.cancelable) event.preventDefault();
           event.stopPropagation();
           const options = (window.rhLenis && window.rhLenis.options) || {};
