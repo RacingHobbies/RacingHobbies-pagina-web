@@ -3371,22 +3371,14 @@
 
         const toScroll = (dx) => dx * travelFactor();
 
-        // El gesto no empieza ni acaba exactamente con el pin. Con el borde
-        // pegado al tramo fijado había media pantalla muerta a cada lado: el
-        // carril ya se ve llegar —o se acaba de soltar— y el dedo no responde
-        // todavía, o ha dejado de hacerlo. El margen deja que el barrido
-        // enganche desde un poco antes y siga valiendo un poco después, de
-        // media pantalla, que es lo que se tarda en entrar y salir de la
-        // escena en cualquier formato.
-        const margin = () => Math.round(window.innerHeight * 0.5);
-        // El gesto mueve el carril y su entrada, no la página entera: más allá
-        // del margen el scroll pertenece a la sección vecina.
-        const clamp = (value) =>
-          Math.min(st.end + margin(), Math.max(st.start - margin(), value));
-        const inRange = () => {
-          const y = scrollTarget();
-          return y >= st.start - margin() && y <= st.end + margin();
-        };
+        // El gesto pertenece exclusivamente al tramo fijado. Antes se dejaba
+        // media pantalla de margen a ambos lados para que enganchase antes y
+        // soltara después; en un barrido rápido o con inercia eso permitía
+        // empujar el scroll más allá de `st.end`, aunque la última ficha ya
+        // había llegado a su posición final. El carril no puede continuar
+        // después de su cierre visual.
+        const clamp = (value) => Math.min(st.end, Math.max(st.start, value));
+        const inRange = () => st.isActive;
 
         // Se lee en cada gesto y no al construir: Lenis se monta en otra
         // función y puede no existir todavía —o no existir nunca, si su
