@@ -5,12 +5,13 @@ carrito solo guarda identificadores de productos y cantidades en el navegador,
 y el formulario compone un enlace de WhatsApp sin enviar datos a un servidor
 propio.
 
-## Revisión y despliegue de prueba del 7 de septiembre de 2026
+## Revisión y despliegue continuo en Cloudflare Pages
 
-- Vista pública gratuita: <https://racing-hobbies-preview.pages.dev/>.
-  Se desplegó en Cloudflare Pages mediante Direct Upload, sin comprar ni
-  conectar un dominio, sin tocar DNS ni pagos y sin conceder a Cloudflare
-  acceso al repositorio de GitHub.
+- Sitio publicado: <https://racing-hobbies.pages.dev/>. Cloudflare Pages está
+  conectado a `RacingHobbies/RacingHobbies.github.io`: cada push a `main`
+  ejecuta el empaquetado y publica automáticamente la nueva versión.
+- GitHub Pages está despublicado y su fuente está configurada en `None`, por lo
+  que el repositorio no mantiene un segundo hosting público.
 - Despliegue validado: **360 archivos, 8 páginas y 86 referencias SRI**. La
   variante de Cloudflare conserva `_headers` y excluye `.htaccess`, que solo
   corresponde a Apache.
@@ -63,10 +64,9 @@ Ejecuta:
 ```
 
 Para Cloudflare Pages usa en su lugar `./scripts/package-cloudflare.sh`; genera
-`.cloudflare-pages/` sin configuración exclusiva de Apache. El proyecto de
-prueba actual es Direct Upload: las actualizaciones se cargan manualmente al
-proyecto `racing-hobbies-preview`. Si más adelante se desea despliegue continuo
-desde GitHub, conviene crear entonces un proyecto conectado al repositorio.
+`.cloudflare-pages/` sin configuración exclusiva de Apache. El proyecto
+`racing-hobbies` ejecuta ese comando automáticamente con cada push a `main` y
+publica únicamente esa carpeta como salida del build.
 
 El primer comando regenera los artefactos minificados. El segundo comprueba
 CSP, hashes JSON-LD, iframes, scripts, enlaces externos, `security.txt` y
@@ -74,7 +74,7 @@ sintaxis JavaScript. También rechaza JavaScript/CSS inline nuevo y recalcula
 SRI de todos los scripts y hojas CSS locales.
 Además verifica la integridad de los bundles vendorizados.
 También rechaza que se versione cualquier archivo que `.gitignore` declare
-privado: GitHub Pages sirve el árbol tal cual y lo publicaría igualmente.
+privado, para que no llegue a la salida pública de Cloudflare Pages.
 El tercer comando cierra un hueco distinto: la auditoría comprueba el SRI del
 artefacto minificado, pero no que ese artefacto derive del fuente auditado.
 `verify-build-freshness.sh` recompila con las versiones fijadas y compara byte
@@ -185,9 +185,7 @@ El DNS actual apunta a InfinityFree. En el panel del proveedor:
 Repite ambos verificadores después de cada cambio. No consideres terminado el
 despliegue hasta que los dos terminen con éxito.
 
-GitHub Pages no aplica `_headers`, por lo que solo ofrece la CSP declarativa de
-los HTML y el guardia anti-clickjacking del cliente. Para obtener HSTS,
-`frame-ancestors` y el resto de cabeceras, publica en un host que soporte
-`_headers` o coloca Cloudflare delante del dominio. Si el servidor es Apache o
-cPanel, sube también `.htaccess`; si es Nginx u OpenResty, usa
-`nginx-security-headers.conf.example` dentro del bloque `server`.
+Cloudflare Pages aplica `_headers`, incluidos HSTS, `frame-ancestors` y el resto
+de cabeceras obligatorias. GitHub Pages está desactivado. Si el sitio se migra
+en el futuro a Apache o Nginx, usa respectivamente `.htaccess` o
+`nginx-security-headers.conf.example`.

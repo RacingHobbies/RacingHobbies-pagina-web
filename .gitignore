@@ -18,6 +18,7 @@ output/
 .release-artifacts-*/
 .apache-artifacts-*/
 .cloudflare-pages/
+.cloudflare-pages */
 .cloudflare-pages-staging-*/
 .cloudflare-pages-backup-*/
 .cloudflare-artifacts-*/
