@@ -53,6 +53,34 @@ test('los accesos flotantes no tapan tarjetas durante un carril móvil horizonta
   );
 });
 
+test('el teléfono girado conserva una sola escena completa por sección', () => {
+  const css = formatParitySource();
+  assert.match(
+    css,
+    /@media \(max-width: 899px\) and \(orientation: landscape\) and \(max-height: 500px\) \{[\s\S]*?\.page-home \.ln-manifesto,[\s\S]*?height: 100svh !important;/
+  );
+  assert.match(
+    css,
+    /body:not\(\.page-home\) main > section:not\(\[data-lando-horizontal\]\)[\s\S]*?height: 100svh !important;/
+  );
+  assert.match(
+    mainSource(),
+    /orientation: landscape\) and \(max-height: 500px\)"\)\.matches\n\s*\) return;/
+  );
+});
+
+test('los iconos de ubicación terminan antes de la pausa sin perder su orden', () => {
+  const source = mainSource();
+  assert.match(
+    source,
+    /shape\.closest\(\s*"\.page-home \.home-location \.info-list \.info-item"\s*\)/
+  );
+  assert.match(
+    source,
+    /start: locationInfoItem \? "top 140%" : "top 88%"/
+  );
+});
+
 test('las páginas publicadas solicitan la versión ligada al contenido de la corrección móvil', () => {
   const version = cacheVersion('css/format-parity.css');
   pages.forEach((page) => {

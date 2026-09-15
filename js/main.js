@@ -3565,7 +3565,16 @@
     const g = window.gsap;
     const ST = window.ScrollTrigger;
     const manifesto = $(".ln-manifesto");
-    if (REDUCED || !g || !ST || !manifesto) return;
+    // En un teléfono girado cada sección es una sola escena de pantalla
+    // completa. El pin adicional del manifiesto la alargaba a más de dos
+    // pantallas y mezclaba su salida con la siguiente escena.
+    if (
+      REDUCED ||
+      !g ||
+      !ST ||
+      !manifesto ||
+      window.matchMedia("(orientation: landscape) and (max-height: 500px)").matches
+    ) return;
     g.registerPlugin(ST);
     manifesto.classList.add("rh-mobile-manifesto-motion");
     initManifestoTimeline(g, ST, manifesto);
@@ -3885,6 +3894,9 @@
         shape.style.setProperty("--rh-path-length", length.toFixed(2));
         const target =
           shape.closest(".info-item, .map-card, .reveal, section, footer") || shape;
+        const locationInfoItem = shape.closest(
+          ".page-home .home-location .info-list .info-item"
+        );
         g.fromTo(
           shape,
           { strokeDasharray: length, strokeDashoffset: length },
@@ -3896,7 +3908,11 @@
             scrollTrigger: ST
               ? {
                   trigger: target,
-                  start: "top 88%",
+                  // La escena de ubicación se detiene cuando ya está completa
+                  // en pantalla. Sus datos entran en orden vertical; anticipar
+                  // todos por el mismo margen mantiene esa cascada y permite
+                  // que el último (Formas de pago) termine antes de la pausa.
+                  start: locationInfoItem ? "top 140%" : "top 88%",
                   once: true,
                 }
               : undefined,
