@@ -144,7 +144,7 @@ fi
 printf '%s\n' "$body" | rg -q 'Racing Hobbies Ecuador' ||
   fail "La respuesta no parece ser el sitio actual de Racing Hobbies."
 
-printf '%s\n' "$body" | rg -q 'js/main\.min\.js\?v=[0-9]+' ||
+printf '%s\n' "$body" | rg -q 'js/main\.min\.js\?v=[0-9a-f]+' ||
   fail "La respuesta no contiene el bundle endurecido del sitio actual."
 
 printf '%s\n' "$body" | rg -q 'catalogo\.html' ||
