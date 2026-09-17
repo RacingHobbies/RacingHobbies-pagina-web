@@ -2278,7 +2278,9 @@
   }
 
   function initLando() {
-    if (REDUCED) return;
+    // Los carriles horizontales son navegación de contenido, no un efecto
+    // decorativo. Incluso con "reducir movimiento" deben montarse para que
+    // las fichas que quedan fuera de la pantalla sigan siendo accesibles.
     document.documentElement.classList.add("lando-anim");
 
     const g = window.gsap;

@@ -76,6 +76,15 @@ test('la rueda + Shift de Windows se traduce a desplazamiento lateral', () => {
   assert.match(source, /!event\.shiftKey && Math\.abs\(dx\) <= Math\.abs\(event\.deltaY\)/);
 });
 
+test('reducir movimiento no desactiva el acceso al contenido horizontal', () => {
+  // El carril fija contenido y lo hace navegable; no es un adorno opcional.
+  // La preferencia sólo debe reducir efectos decorativos, no ocultar fichas.
+  const source = mainSource();
+  const start = source.indexOf('function initLando()');
+  const body = source.slice(start, source.indexOf('/* ==================================================================', start));
+  assert.doesNotMatch(body, /function initLando\(\)\s*\{\s*if \(REDUCED\) return;/);
+});
+
 test('el paquete publicado lleva el gesto, no sólo el fuente', () => {
   // Editar `main.js` sin recompilar no cambia nada de lo que sirve el sitio.
   // Las marcas son literales que sobreviven al minificador y que ANTES del
