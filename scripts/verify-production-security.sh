@@ -85,7 +85,7 @@ printf '%s\n' "$http_headers" | tr '[:upper:]' '[:lower:]' | rg -q '^location: h
 # alias "www" por proyecto. La comprobación sigue siendo obligatoria para el
 # dominio comercial cuando se conecte más adelante.
 if [[ "$target_host" != www.* && "$target_host" != *.pages.dev ]]; then
-  www_headers="$(curl -fsSIL --max-time 20 -A 'RacingHobbiesSecurityCheck/1.0' "https://www.$target_host/")" ||
+  www_headers="$(curl -fsSI --max-time 20 -A 'RacingHobbiesSecurityCheck/1.0' "https://www.$target_host/")" ||
     fail "No se pudo consultar el alias www."
   printf '%s\n' "$www_headers" | rg -q '^HTTP/[0-9.]+ (301|302|307|308) ' ||
     fail "www.$target_host no redirige al dominio canónico."

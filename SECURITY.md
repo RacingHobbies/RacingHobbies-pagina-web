@@ -163,9 +163,10 @@ parece el sitio actual o que faltan cabeceras, el dominio todavía está sirvien
 otra versión o el hosting no aplica `_headers`; no debe considerarse publicado
 de forma segura.
 
-## Publicación en InfinityFree
+## Publicación alternativa en Apache/cPanel
 
-El DNS actual apunta a InfinityFree. En el panel del proveedor:
+Si el sitio se migra desde Cloudflare Pages a Apache/cPanel, coordina estos
+pasos con el proveedor antes de cambiar el DNS:
 
 1. Renueva o reinstala el certificado SSL para `racinghobbies.net` y
    `www.racinghobbies.net`.

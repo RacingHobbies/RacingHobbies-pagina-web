@@ -23,6 +23,7 @@ test('la capa pública usa racinghobbies.net como único origen canónico', () =
   }
   assert.doesNotMatch(read('robots.txt'), /racinghobbiesec\.com/);
   assert.doesNotMatch(read('sitemap.xml'), /racinghobbiesec\.com/);
+  assert.match(read('_redirects'), /https:\/\/www\.racinghobbies\.net\/\*\s+https:\/\/racinghobbies\.net\/:splat\s+308!/);
   assert.match(read('_redirects'), /\/catalogo\.html\s+\/catalogo\s+308/);
 });
 
