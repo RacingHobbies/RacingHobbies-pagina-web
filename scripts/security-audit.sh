@@ -229,7 +229,14 @@ for file in index.html contacto.html; do
 done
 
 rg -q 'sandbox' js/main.min.js || fail "El artefacto minificado no contiene el sandbox del mapa."
-rg -q 'frame-guard.min.js' --glob '*.html' || fail "Falta el guardia anti-clickjacking en HTML."
+frame_guard_found=0
+for file in "${html_files[@]}"; do
+  if rg -q 'frame-guard\.min\.js' "$file"; then
+    frame_guard_found=1
+    break
+  fi
+done
+(( frame_guard_found == 1 )) || fail "Falta el guardia anti-clickjacking en HTML."
 rg -q 'Contact: mailto:' .well-known/security.txt || fail "security.txt no tiene contacto."
 rg -q 'Canonical: https://' .well-known/security.txt || fail "security.txt no tiene URL canónica."
 rg -v '^#' VENDOR-SHA256SUMS | sha256sum --check - >/dev/null ||
