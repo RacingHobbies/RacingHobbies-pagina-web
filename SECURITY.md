@@ -189,3 +189,12 @@ Cloudflare Pages aplica `_headers`, incluidos HSTS, `frame-ancestors` y el resto
 de cabeceras obligatorias. GitHub Pages está desactivado. Si el sitio se migra
 en el futuro a Apache o Nginx, usa respectivamente `.htaccess` o
 `nginx-security-headers.conf.example`.
+
+Pages no admite redirecciones a nivel de dominio dentro de `_redirects`. Para
+que `https://www.racinghobbies.net/*` llegue al origen canónico, crea en
+Cloudflare una regla Bulk Redirect hacia
+`https://racinghobbies.net/$1` con código permanente, siguiendo la
+[documentación oficial de Cloudflare](https://developers.cloudflare.com/pages/how-to/www-redirect/).
+El verificador público mantiene esta comprobación y fallará hasta que esa
+regla externa exista; no se considera una configuración completada desde el
+repositorio.
