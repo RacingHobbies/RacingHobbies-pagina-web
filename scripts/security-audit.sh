@@ -226,7 +226,7 @@ for file in index.html contacto.html; do
   } | openssl dgst -sha256 -binary | openssl base64 -A)"
   for carrier in "${csp_carriers[@]}"; do
     [[ -f "$carrier" ]] || continue
-    rg -q "$hash" "$carrier" ||
+    rg -Fq "$hash" "$carrier" ||
       fail "El hash CSP JSON-LD de $file no está en $carrier (ejecuta scripts/update-csp-hashes.sh)."
   done
 done

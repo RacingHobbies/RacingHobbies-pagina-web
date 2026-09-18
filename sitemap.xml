@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://racinghobbiesec.com/</loc>
+    <loc>https://racinghobbies.net/</loc>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://racinghobbiesec.com/catalogo.html</loc>
+    <loc>https://racinghobbies.net/catalogo</loc>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://racinghobbiesec.com/servicio-tecnico.html</loc>
+    <loc>https://racinghobbies.net/servicio-tecnico</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://racinghobbiesec.com/nosotros.html</loc>
+    <loc>https://racinghobbies.net/nosotros</loc>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://racinghobbiesec.com/contacto.html</loc>
+    <loc>https://racinghobbies.net/contacto</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://racinghobbiesec.com/garantia.html</loc>
+    <loc>https://racinghobbies.net/garantia</loc>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://racinghobbiesec.com/privacidad.html</loc>
+    <loc>https://racinghobbies.net/privacidad</loc>
     <priority>0.3</priority>
   </url>
 </urlset>

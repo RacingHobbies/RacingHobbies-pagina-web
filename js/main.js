@@ -185,6 +185,7 @@
       cart.push({ id, qty: n });
     }
     saveCart();
+    if (window.RH_ANALYTICS) window.RH_ANALYTICS.addToCart(p, n);
     renderCartUI(true);
     showToast(p.name + " agregado al carrito 🏁");
   }
@@ -193,16 +194,25 @@
     const it = cart.find((x) => x.id === id);
     if (!it) return;
     if (!Number.isInteger(qty)) return;
+    const previous = it.qty;
+    const p = getProduct(id);
     it.qty = Math.min(99, qty);
     if (it.qty <= 0) {
       cart = cart.filter((x) => x.id !== id);
+    }
+    if (window.RH_ANALYTICS && p) {
+      if (it.qty > previous) window.RH_ANALYTICS.addToCart(p, it.qty - previous);
+      if (it.qty < previous) window.RH_ANALYTICS.removeFromCart(p, previous - Math.max(it.qty, 0));
     }
     saveCart();
     renderCartUI(false);
   }
 
   function removeFromCart(id) {
+    const item = cart.find((x) => x.id === id);
+    const p = getProduct(id);
     cart = cart.filter((x) => x.id !== id);
+    if (window.RH_ANALYTICS && p && item) window.RH_ANALYTICS.removeFromCart(p, item.qty);
     saveCart();
     renderCartUI(false);
   }
@@ -334,6 +344,7 @@
     if (!drawer) return;
     clearTimeout(cartHideTimer);
     cartReturnFocus = returnFocus || document.activeElement;
+    if (window.RH_ANALYTICS) window.RH_ANALYTICS.viewCart(cart.map((it) => ({ ...getProduct(it.id), quantity: it.qty })));
     drawer.hidden = false;
     backdrop.hidden = false;
     setBackgroundInert(true);
@@ -464,6 +475,10 @@
     const p = getProduct(id);
     const backdrop = $("#rh-modal-backdrop");
     if (!p || !backdrop) return;
+    if (window.RH_ANALYTICS) {
+      window.RH_ANALYTICS.selectItem(p, document.body.classList.contains("page-catalog") ? "Catálogo" : "Modelos destacados");
+      window.RH_ANALYTICS.viewItem(p);
+    }
     clearTimeout(modalHideTimer);
     modalReturnFocus = document.activeElement;
 
@@ -2091,6 +2106,10 @@
 
       if (t.closest("[data-clear-cart]")) {
         clearCart();
+      }
+
+      if (t.closest("#rh-checkout") && window.RH_ANALYTICS) {
+        window.RH_ANALYTICS.beginCheckout(cart.map((it) => ({ ...getProduct(it.id), quantity: it.qty })));
       }
     });
 

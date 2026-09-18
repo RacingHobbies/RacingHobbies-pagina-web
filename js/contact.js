@@ -96,6 +96,7 @@
       ];
 
       const url = waLink(lines.join("\n"));
+      if (window.RH_ANALYTICS) window.RH_ANALYTICS.contactFormSubmit(topic);
       const popup = window.open(
         url,
         "_blank",

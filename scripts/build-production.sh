@@ -11,7 +11,7 @@ TERSER_VERSION="5.49.0"
 
 npx --yes "lightningcss-cli@${LIGHTNINGCSS_VERSION}" --minify css/styles.css -o css/styles.min.css
 
-for source in config data main catalog contact frame-guard; do
+for source in config data main catalog contact analytics frame-guard; do
   npx --yes "terser@${TERSER_VERSION}" "js/${source}.js" \
     --compress \
     --mangle \

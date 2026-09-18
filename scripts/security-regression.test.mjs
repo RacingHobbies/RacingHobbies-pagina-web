@@ -23,7 +23,7 @@ function fixture(t) {
   for (const name of ['index', 'catalogo', 'contacto', 'nosotros', 'servicio-tecnico', 'garantia', 'privacidad', '404']) {
     put(name + '.html', '<script src="js/app.js?v=1" integrity="sha256-' + sri + '"></script>');
   }
-  for (const name of ['js/app.js', 'css/app.css', 'assets/image.png', '.well-known/security.txt', '.htaccess', '_headers', '.nojekyll', 'robots.txt', 'sitemap.xml', 'site.webmanifest']) put(name);
+  for (const name of ['js/app.js', 'css/app.css', 'assets/image.png', '.well-known/security.txt', '.htaccess', '_headers', '_redirects', '.nojekyll', 'robots.txt', 'sitemap.xml', 'site.webmanifest']) put(name);
   return { root, put };
 }
 
@@ -194,7 +194,7 @@ for (const rewrite of [false, true]) {
     if (rewrite) {
       assert.equal((await request('/.git/HEAD')).status, 403);
       const redirect = await new Promise((resolve, reject) => {
-        const req = http.get(base + '/catalogo.html', { headers: { Host: 'racinghobbiesec.com' } }, response => {
+        const req = http.get(base + '/catalogo.html', { headers: { Host: 'racinghobbies.net' } }, response => {
           response.resume();
           response.on('end', () => resolve(response));
         });
@@ -202,7 +202,7 @@ for (const rewrite of [false, true]) {
         req.setTimeout(2000, () => req.destroy(Error('timeout')));
       });
       assert.equal(redirect.statusCode, 308);
-      assert.equal(redirect.headers.location, 'https://racinghobbiesec.com/catalogo.html');
+      assert.equal(redirect.headers.location, 'https://racinghobbies.net/catalogo.html');
     }
   });
 }

@@ -7,7 +7,7 @@ contraste claro/oscuro, naranja de la marca, tipografía cinética, navegación
 inmersiva, galerías laterales, producto protagonista y movimiento continuo.
 
 Todo el contenido (productos, precios, fotos, marcas, datos de contacto y
-horarios) proviene del sitio actual de la marca (racinghobbiesec.com).
+horarios) proviene del sitio actual de la marca (racinghobbies.net).
 
 ## Cómo verlo
 
@@ -88,6 +88,7 @@ documentación del repositorio.
 | `js/main.js` | Carrito, menú inmersivo, transiciones de página, scroll inercial, modal accesible, horario vivo, mapa bajo demanda, reveals, escenas GSAP, parallax y progreso de lectura |
 | `js/catalog.js` | Búsqueda sin acentos, filtros/orden, atajo `/` y selección compartible |
 | `js/contact.js` | Validación del formulario |
+| `js/analytics.js` | Capa `dataLayer` local y eventos de navegación, ecommerce y contacto |
 | `js/*.min.js` | JavaScript optimizado que cargan las páginas publicadas |
 | `scripts/security-audit.sh` | Auditoría local de regresión de CSP, cabeceras, scripts y enlaces |
 | `scripts/verify-production-security.sh` | Verifica cabeceras y contenido del dominio publicado |
@@ -162,6 +163,19 @@ El carrito se guarda en `localStorage`. Al pulsar **"Pedir por WhatsApp"** se
 genera un mensaje con el detalle del pedido y el total hacia el número
 configurado; pago y entrega se coordinan por chat (retiro en local o envío
 por Servientrega).
+
+## Medición y atribución
+
+`js/analytics.js` centraliza los eventos compatibles con GA4/GTM: vistas de
+página y producto, listas, selección, carrito, inicio de checkout, búsqueda,
+WhatsApp, llamadas y envío de formulario. La capa conserva ecommerce real,
+omite datos personales y mantiene los cinco parámetros UTM estándar al aplicar
+filtros del catálogo.
+
+No hay un ID de medición GA4 ni un contenedor GTM autorizado en este repositorio
+o en la sesión de trabajo. Por eso la implementación deja `window.dataLayer`
+lista para conectarse cuando el propietario facilite esas credenciales, pero no
+envía datos a terceros ni inventa una propiedad, conversión o validación externa.
 
 ## Seguridad
 

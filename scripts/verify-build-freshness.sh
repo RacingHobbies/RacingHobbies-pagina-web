@@ -30,7 +30,7 @@ trap 'rm -rf "$work"' EXIT
 
 stale=0
 
-for source in config data main catalog contact frame-guard; do
+for source in config data main catalog contact analytics frame-guard; do
   npx --yes "terser@${TERSER_VERSION}" "js/${source}.js" \
     --compress --mangle --comments false \
     --output "${work}/${source}.min.js" >/dev/null 2>&1

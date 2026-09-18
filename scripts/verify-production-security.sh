@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TARGET_URL="${1:-https://racinghobbiesec.com/}"
+TARGET_URL="${1:-https://racinghobbies.net/}"
 
 fail() {
   echo "ERROR: $*" >&2
