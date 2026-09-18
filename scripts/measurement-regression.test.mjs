@@ -21,6 +21,7 @@ test('la capa pública usa racinghobbies.net como único origen canónico', () =
     assert.match(html, /<meta name="twitter:image" content="https:\/\/racinghobbies\.net\//, file);
     assert.doesNotMatch(html, /racinghobbiesec\.com/, file);
   }
+  assert.match(read('index.html'), /<meta name="google-site-verification" content="[A-Za-z0-9_-]+">/);
   assert.doesNotMatch(read('robots.txt'), /racinghobbiesec\.com/);
   assert.doesNotMatch(read('sitemap.xml'), /racinghobbiesec\.com/);
   assert.match(read('_redirects'), /\/catalogo\.html\s+\/catalogo\s+308/);
