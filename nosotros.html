@@ -4,16 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-8v5bylmJeypTXgB7NZW8x+SWenj6orEx2wL8RymDdB4=' 'sha256-pLgEJY4w9sG7y5MNFxNZPABUGquvNfjeg0ZBEP/vq+k='; script-src-elem 'self' 'sha256-8v5bylmJeypTXgB7NZW8x+SWenj6orEx2wL8RymDdB4=' 'sha256-pLgEJY4w9sG7y5MNFxNZPABUGquvNfjeg0ZBEP/vq+k='; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; media-src 'self'; frame-src 'none'; form-action 'self'; upgrade-insecure-requests">
+        content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://www.googletagmanager.com 'sha256-8v5bylmJeypTXgB7NZW8x+SWenj6orEx2wL8RymDdB4=' 'sha256-pLgEJY4w9sG7y5MNFxNZPABUGquvNfjeg0ZBEP/vq+k='; script-src-elem 'self' https://www.googletagmanager.com 'sha256-8v5bylmJeypTXgB7NZW8x+SWenj6orEx2wL8RymDdB4=' 'sha256-pLgEJY4w9sG7y5MNFxNZPABUGquvNfjeg0ZBEP/vq+k='; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self'; font-src 'self'; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com; manifest-src 'self'; media-src 'self'; frame-src 'none'; form-action 'self'; upgrade-insecure-requests">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <script src="js/frame-guard.min.js?v=a267ea16d6122e00" integrity="sha256-omfqFtYSLgAsJEbmFHczRiUdMurlrdQToP6ZK1foFsg="></script>
+  <script src="js/consent.min.js?v=2c33a2ac0a5c331f" integrity="sha256-LDOirApcMx8b3vLpFv9fOoX1MNRsqg+v+pu3Ecz7Fik="></script>
+  <script src="js/gtm-loader.min.js?v=dcfd0b431062f194" integrity="sha256-3P0LQxBi8ZQLexm5k4hB2HVB0y83rHdLd8w/wm+whZg="></script>
   <meta name="theme-color" content="#000000">
   <meta name="color-scheme" content="dark">
   <link rel="icon" href="assets/favicon.svg?v=2" type="image/svg+xml">
   <link rel="manifest" href="site.webmanifest">
   <link rel="preload" href="assets/fonts/anton-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/archivo-var.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/styles.min.css?v=ccd89a1391c9f2f5" integrity="sha256-zNiaE5HJ8vW3zMGOT9CKMuFIshaNuLrTK+0P9oH0HBY=">
+  <link rel="stylesheet" href="css/styles.min.css?v=c5186cfa17a1ea68" integrity="sha256-xRhs+heh6miSbxzVgMndrtCzIpUx1OjHUhHLEG5NqsU=">
   <link rel="stylesheet" href="css/typography.css?v=39bea6afd1f4c5a5" integrity="sha256-Ob6mr9H0xaVdzlLU6xWl5TvS6AJ6Yt3hhBBNoVarX0s=">
   <link rel="stylesheet" href="css/cta-cards.css?v=f3fe384188ccf366" integrity="sha256-8/44QYjM82a5C+wUEhTakxVDMf2s+kQxUngGFlCPfww=">
   <link rel="stylesheet" href="css/format-parity.css?v=5c20097029cafcd0" integrity="sha256-XCAJcCnK/NAf5ou0VQtQQdlFE1IFWiP66U0TMPAJ8rU=">
@@ -241,7 +243,7 @@
   <script defer src="js/vendor/ScrollTrigger.min.js?v=b0b14d67b55b0c43" integrity="sha256-sLFNZ7VbDEPHVqwLEGz8sJ0IeZRfbq1kRRBlsGcpFqI="></script>
   <script defer src="js/config.min.js?v=a5f815727cf90658" integrity="sha256-pfgVcnz5BlirbER0+LLKJlTC5bKu7cTfu5rc22KeCvs="></script>
   <script defer src="js/data.min.js?v=16026b62370a3e3d" integrity="sha256-FgJrYjcKPj1hW9tDbIdkQS1+fzEzqZOMDSBr4JFDH+U="></script>
-  <script defer src="js/analytics.min.js?v=20afebb97282838c" integrity="sha256-IK/ruXKCg4wHV/OYptv1AfxEYay6okfQhnPZfE9SJLY="></script>
+  <script defer src="js/analytics.min.js?v=af05cc30bbbd70c2" integrity="sha256-rwXMMLu9cMLp98IYCjHVRmNuDyCz7QwqZKekVQwzf4w="></script>
   <script defer src="js/main.min.js?v=bc46083d27d953fa" integrity="sha256-vEYIPSfZU/okmI4ljZsA62vafYkAJhLafLcMNypZTYo="></script>
 </body>
 </html>

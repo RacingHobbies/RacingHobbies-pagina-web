@@ -31,7 +31,10 @@ test('cada página indexable carga el módulo de medición con SRI', () => {
   for (const file of pages) {
     const html = read(file);
     assert.match(html, /<script defer src="js\/analytics\.min\.js\?v=[0-9a-f]+" integrity="sha256-[^"]+"><\/script>/, file);
+    assert.match(html, /<script src="js\/consent\.min\.js\?v=[0-9a-f]+" integrity="sha256-[^"]+"><\/script>/, file);
+    assert.match(html, /<script src="js\/gtm-loader\.min\.js\?v=[0-9a-f]+" integrity="sha256-[^"]+"><\/script>/, file);
   }
+  assert.match(read('js/gtm-loader.js'), /GTM-PHWK4J3L/);
   assert.match(read('scripts/package-production.mjs'), /'_redirects'/);
 });
 
@@ -76,4 +79,57 @@ test('la capa dataLayer deduplica page_view y conserva ecommerce real', () => {
   assert.equal(events[2].items[0].quantity, 2);
   assert.equal(events[2].value, 1600);
   assert.doesNotMatch(JSON.stringify(events), /099|Nombre|Teléfono|message/i);
+});
+
+test('las búsquedas con apariencia de correo o teléfono no salen al dataLayer', () => {
+  const listeners = {};
+  const window = {
+    dataLayer: [],
+    location: { origin: 'https://racinghobbies.net', pathname: '/catalogo' },
+    document: null,
+  };
+  const document = {
+    title: 'Catálogo',
+    addEventListener(type, handler) { listeners[type] = handler; },
+  };
+  window.document = document;
+  vm.runInNewContext(read('js/analytics.js'), { window, document, console, URL });
+  window.RH_ANALYTICS.search('motor crawler', 4);
+  window.RH_ANALYTICS.search('cliente@example.com', 4);
+  window.RH_ANALYTICS.search('+593 099 801 9836', 4);
+  const searches = window.dataLayer.filter(item => item.event === 'search');
+  assert.equal(searches.length, 1);
+  assert.equal(searches[0].search_term, 'motor crawler');
+});
+
+test('GTM sólo se carga después de aceptar la medición', () => {
+  const source = read('js/gtm-loader.js');
+  assert.match(source, /RH_CONSENT\.get\(\) !== ['"]granted['"]/);
+  assert.match(source, /addEventListener\(['"]rh:consent['"]/);
+  assert.match(source, /event\.detail === ['"]granted['"]/);
+  assert.match(source, /send_page_view: false/);
+  assert.match(source, /G-15799391904/);
+});
+
+test('los eventos aceptados también usan la cola gtag sin duplicar page_view', () => {
+  const commands = [];
+  const listeners = {};
+  const window = {
+    dataLayer: [],
+    location: { origin: 'https://racinghobbies.net', pathname: '/catalogo' },
+    RH_CONSENT: { get: () => 'granted' },
+    gtag(...args) { commands.push(args); },
+    document: null,
+  };
+  const document = {
+    title: 'Catálogo',
+    addEventListener(type, handler) { listeners[type] = handler; },
+  };
+  window.document = document;
+  vm.runInNewContext(read('js/analytics.js'), { window, document, console });
+  window.RH_ANALYTICS.pageView();
+  window.RH_ANALYTICS.addToCart({ id: 'crawler-1', name: 'Crawler', price: 120 }, 1);
+  assert.equal(commands.filter(([type]) => type === 'event').length, 1);
+  assert.equal(commands[0][1], 'add_to_cart');
+  assert.equal(window.dataLayer.filter(item => item.event === 'page_view').length, 1);
 });

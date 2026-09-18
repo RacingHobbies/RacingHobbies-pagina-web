@@ -198,3 +198,21 @@ Cloudflare una regla Bulk Redirect hacia
 El verificador público mantiene esta comprobación y fallará hasta que esa
 regla externa exista; no se considera una configuración completada desde el
 repositorio.
+
+## Medición y consentimiento
+
+El sitio carga `js/consent.min.js` antes de `js/gtm-loader.min.js`. No usa un
+iframe `noscript` de GTM, para que JavaScript desactivado tampoco pueda iniciar
+una solicitud de medición sin elección. El estado
+inicial de Consent Mode es `analytics_storage=denied`; el visitante puede
+aceptar o rechazar la medición y cambiar esa decisión en la página de
+privacidad. GTM y el cliente oficial de GA4 no se descargan mientras no exista
+una aceptación; solo al aceptar se actualiza el estado a `granted` y se activan
+las etiquetas de medición. El contenedor publicado es `GTM-PHWK4J3L` y la
+propiedad es `G-15799391904`.
+
+La capa de datos no incluye campos de contacto ni el texto del pedido. Las
+búsquedas que parecen correos o teléfonos se descartan antes de entrar a la
+capa. Si cambia la propiedad o el contenedor, actualiza primero el módulo
+local, sus pruebas, la CSP y esta documentación; después publica una nueva
+versión de GTM y valida los eventos en producción.

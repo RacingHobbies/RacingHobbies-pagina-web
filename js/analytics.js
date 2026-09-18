@@ -1,7 +1,7 @@
 /* ========================================================================
    Racing Hobbies — capa de medición
    Data layer compatible con GA4/GTM, sin dependencias externas ni PII.
-   El sitio no envía datos a terceros hasta que exista una propiedad autorizada.
+   GTM y Google tag deciden el envío a GA4 según el consentimiento guardado por el visitante.
    ======================================================================== */
 
 (function () {
@@ -29,6 +29,14 @@
   function clean(value, limit) {
     const result = String(value == null ? "" : value).trim();
     return result ? result.slice(0, limit || MAX) : undefined;
+  }
+
+  function safeSearchTerm(value) {
+    const term = clean(value, 80);
+    if (!term || /[^\s@]+@[^\s@]+\.[^\s@]+/.test(term) || /\+?\d[\d\s().-]{6,}/.test(term)) {
+      return undefined;
+    }
+    return term;
   }
 
   function pageLocation() {
@@ -59,6 +67,10 @@
       ...params,
     };
     window.dataLayer.push(payload);
+    if (name !== "page_view" && window.RH_CONSENT?.get() === "granted" && typeof window.gtag === "function") {
+      const { event: ignoredEvent, ...eventParams } = payload;
+      window.gtag("event", name, eventParams);
+    }
   }
 
   function itemsFrom(products) {
@@ -128,7 +140,7 @@
       });
     },
     search(term, resultsCount) {
-      const searchTerm = clean(term, 80);
+      const searchTerm = safeSearchTerm(term);
       if (!searchTerm) return;
       push("search", {
         search_term: searchTerm,

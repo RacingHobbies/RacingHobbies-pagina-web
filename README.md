@@ -172,18 +172,24 @@ WhatsApp, llamadas y envío de formulario. La capa conserva ecommerce real,
 omite datos personales y mantiene los cinco parámetros UTM estándar al aplicar
 filtros del catálogo.
 
-No hay un ID de medición GA4 ni un contenedor GTM autorizado en este repositorio
-o en la sesión de trabajo. Por eso la implementación deja `window.dataLayer`
-lista para conectarse cuando el propietario facilite esas credenciales, pero no
-envía datos a terceros ni inventa una propiedad, conversión o validación externa.
+La medición activa usa el contenedor autorizado `GTM-PHWK4J3L` y la propiedad
+GA4 `G-15799391904`, enlazados mediante `js/gtm-loader.js`. El consentimiento
+de analítica se deniega por defecto con Consent Mode; GTM y el cliente oficial
+de GA4 no se descargan hasta una aceptación explícita y solo entonces se
+habilita el envío. La etiqueta de eventos excluye `page_view` porque
+la etiqueta de Google ya lo genera una sola vez, evitando duplicados. El
+contenedor recibe únicamente los eventos y parámetros documentados en la capa,
+sin nombres, teléfonos, correos, mensajes ni contenido del pedido.
 
 ## Seguridad
 
-- Sin dependencias externas ni CDNs: código, fuentes e imágenes son locales.
+- Código, fuentes e imágenes son locales; la única carga externa de producción
+  es Google Tag Manager, habilitada por consentimiento y restringida en CSP.
 - `Content-Security-Policy` estricta en cada página; sin estilos ni scripts
   inline ejecutables; los dos bloques JSON-LD están autorizados mediante hash,
-  sin abrir `unsafe-inline`; los atributos de evento inline están bloqueados y
-  solo la portada autoriza el iframe de Google Maps.
+  sin abrir `unsafe-inline`; los atributos de evento inline están bloqueados.
+  Google Tag Manager y Google Analytics tienen allowlists específicas; no se
+  usa un fallback `noscript` que pueda saltarse la elección de consentimiento.
 - El mapa de Google se carga únicamente tras una acción explícita del visitante;
   antes de eso no se solicita ningún recurso de Google Maps y el iframe usa
   `sandbox` con permisos mínimos.

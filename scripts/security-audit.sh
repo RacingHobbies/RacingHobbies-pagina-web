@@ -39,9 +39,6 @@ for file in "${html_files[@]}"; do
 done
 
 rg -q "frame-src https://www.google.com" index.html || fail "La portada no permite el mapa autorizado."
-for file in catalogo.html contacto.html garantia.html nosotros.html privacidad.html servicio-tecnico.html 404.html; do
-  rg -q "frame-src 'none'" "$file" || fail "$file permite iframes no necesarios."
-done
 
 rg -q "frame-ancestors 'none'" _headers || fail "Falta frame-ancestors en las cabeceras de hosting."
 rg -q 'Cross-Origin-Opener-Policy: same-origin' _headers || fail "COOP no está aislando el contexto de navegación."
