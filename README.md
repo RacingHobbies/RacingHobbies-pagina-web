@@ -176,10 +176,11 @@ La medición activa usa el contenedor autorizado `GTM-PHWK4J3L` y la propiedad
 GA4 `G-15799391904`, enlazados mediante `js/gtm-loader.js`. El consentimiento
 de analítica se deniega por defecto con Consent Mode; GTM y el cliente oficial
 de GA4 no se descargan hasta una aceptación explícita y solo entonces se
-habilita el envío. La etiqueta de eventos excluye `page_view` porque
-la etiqueta de Google ya lo genera una sola vez, evitando duplicados. El
-contenedor recibe únicamente los eventos y parámetros documentados en la capa,
-sin nombres, teléfonos, correos, mensajes ni contenido del pedido.
+habilita el envío. La etiqueta de Google publicada en GTM genera una sola
+`page_view`; los eventos de negocio se envían desde el cliente oficial usando
+la misma capa `dataLayer`, sin una segunda etiqueta de evento que los duplique.
+El contenedor recibe únicamente los eventos y parámetros documentados en la
+capa, sin nombres, teléfonos, correos, mensajes ni contenido del pedido.
 
 ## Seguridad
 

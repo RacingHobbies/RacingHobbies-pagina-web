@@ -213,6 +213,9 @@ propiedad es `G-15799391904`.
 
 La capa de datos no incluye campos de contacto ni el texto del pedido. Las
 búsquedas que parecen correos o teléfonos se descartan antes de entrar a la
-capa. Si cambia la propiedad o el contenedor, actualiza primero el módulo
-local, sus pruebas, la CSP y esta documentación; después publica una nueva
-versión de GTM y valida los eventos en producción.
+capa. La versión publicada de GTM mantiene únicamente la etiqueta de Google
+para `page_view`; los eventos de negocio salen por el cliente oficial de GA4
+desde la misma capa, para que cada evento llegue una sola vez. Si cambia la
+propiedad o el contenedor, actualiza primero el módulo local, sus pruebas, la
+CSP y esta documentación; después publica una nueva versión de GTM y valida
+los eventos en producción.
