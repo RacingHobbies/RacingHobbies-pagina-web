@@ -578,17 +578,26 @@
     const media = document.createElement("button");
     media.className = dark ? "tile-media" : "prod-media";
     media.type = "button";
-    media.setAttribute("aria-label", "Ver detalle de " + p.name);
+    media.setAttribute(
+      "aria-label",
+      "Ver detalle de " + p.name + (soldOut ? " — Producto agotado" : "")
+    );
     media.dataset.detail = p.id;
     media.appendChild(productImg(p));
-    if (p.tag || soldOut) {
+    if (soldOut) {
+      const soldOutWatermark = document.createElement("span");
+      soldOutWatermark.className = "sold-out-watermark";
+      soldOutWatermark.textContent = "Agotado";
+      soldOutWatermark.setAttribute("aria-hidden", "true");
+      media.appendChild(soldOutWatermark);
+    }
+    if (p.tag && !soldOut) {
       const tag = document.createElement("span");
       tag.className =
         (dark ? "tile-tag" : "prod-tag") +
-        (p.tag === "oferta" ? " hot" : "") +
-        (soldOut ? " sold-out" : "");
+        (p.tag === "oferta" ? " hot" : "");
       tag.textContent =
-        soldOut ? "Agotado" : p.tag === "top" ? "Top ventas" : p.tag === "nuevo" ? "Nuevo" : "Oferta";
+        p.tag === "top" ? "Top ventas" : p.tag === "nuevo" ? "Nuevo" : "Oferta";
       card.appendChild(tag);
     }
 
