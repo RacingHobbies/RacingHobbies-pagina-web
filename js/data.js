@@ -1,6 +1,6 @@
 /* ==========================================================================
    Racing Hobbies Ecuador — Catálogo de productos
-   Inventario real de la tienda (racinghobbiesec.com). Precios en USD.
+   Inventario real de la tienda (racinghobbies.net). Precios en USD.
    `img` apunta a assets/img/. Editar aquí actualiza todo el sitio.
    ========================================================================== */
 

@@ -20158,6 +20158,81 @@ html.js body main .race-sector.atmo-on > .race-art {
   }
 }
 
+/* Consentimiento: compacto, visible y compatible con el lenguaje editorial del sitio. */
+.consent-banner {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  width: min(720px, calc(100vw - 48px));
+  padding: 18px 20px;
+  border: 1px solid var(--line-strong);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.2);
+}
+
+.consent-banner-copy {
+  flex: 1 1 auto;
+}
+
+.consent-banner-copy strong {
+  display: block;
+  font-size: 0.86rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.consent-banner-copy p {
+  margin-top: 4px;
+  color: var(--ink-2);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.consent-banner-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  gap: 10px;
+}
+
+.consent-banner-actions .btn {
+  min-height: 38px;
+  padding: 8px 13px;
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+
+.consent-banner-actions > a {
+  color: var(--volt-deep);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .consent-banner {
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    display: block;
+    width: calc(100vw - 24px);
+    padding: 16px;
+  }
+
+  .consent-banner-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-top: 13px;
+  }
+}
+
 /* La cruz tipográfica se percibe ligeramente alta dentro de sus botones
    circulares en iPhone. Este ajuste óptico deja el trazo en el centro visual
    sin mover el botón ni alterar la versión de escritorio. */

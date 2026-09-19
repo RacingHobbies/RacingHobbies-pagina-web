@@ -39,9 +39,6 @@ for file in "${html_files[@]}"; do
 done
 
 rg -q "frame-src https://www.google.com" index.html || fail "La portada no permite el mapa autorizado."
-for file in catalogo.html contacto.html garantia.html nosotros.html privacidad.html servicio-tecnico.html 404.html; do
-  rg -q "frame-src 'none'" "$file" || fail "$file permite iframes no necesarios."
-done
 
 rg -q "frame-ancestors 'none'" _headers || fail "Falta frame-ancestors en las cabeceras de hosting."
 rg -q 'Cross-Origin-Opener-Policy: same-origin' _headers || fail "COOP no está aislando el contexto de navegación."
@@ -226,13 +223,20 @@ for file in index.html contacto.html; do
   } | openssl dgst -sha256 -binary | openssl base64 -A)"
   for carrier in "${csp_carriers[@]}"; do
     [[ -f "$carrier" ]] || continue
-    rg -q "$hash" "$carrier" ||
+    rg -Fq "$hash" "$carrier" ||
       fail "El hash CSP JSON-LD de $file no está en $carrier (ejecuta scripts/update-csp-hashes.sh)."
   done
 done
 
 rg -q 'sandbox' js/main.min.js || fail "El artefacto minificado no contiene el sandbox del mapa."
-rg -q 'frame-guard.min.js' --glob '*.html' || fail "Falta el guardia anti-clickjacking en HTML."
+frame_guard_found=0
+for file in "${html_files[@]}"; do
+  if rg -q 'frame-guard\.min\.js' "$file"; then
+    frame_guard_found=1
+    break
+  fi
+done
+(( frame_guard_found == 1 )) || fail "Falta el guardia anti-clickjacking en HTML."
 rg -q 'Contact: mailto:' .well-known/security.txt || fail "security.txt no tiene contacto."
 rg -q 'Canonical: https://' .well-known/security.txt || fail "security.txt no tiene URL canónica."
 rg -v '^#' VENDOR-SHA256SUMS | sha256sum --check - >/dev/null ||

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOMAIN="${1:-racinghobbiesec.com}"
+DOMAIN="${1:-racinghobbies.net}"
 
 fail() {
   echo "ERROR: $*" >&2

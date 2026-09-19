@@ -27,6 +27,14 @@
     const urlCat = params.get("cat");
     const urlBrand = params.get("brand");
     const urlSort = params.get("sort");
+    const attributionParams = [
+      "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
+    ];
+    const attribution = new URLSearchParams();
+    attributionParams.forEach((key) => {
+      const value = params.get(key);
+      if (value) attribution.set(key, value.slice(0, 120));
+    });
 
     const brandGroups = [
       {
@@ -89,6 +97,7 @@
       query: (params.get("q") || "").trim().slice(0, 80),
       sort: allowedSorts.includes(urlSort) ? urlSort : "featured",
     };
+    let lastSearchEvent = "";
 
     /* Chips de categoría */
     const cats = [{ slug: "all", label: "Todo" }].concat(RH_CATEGORIES);
@@ -299,6 +308,7 @@
       if (state.brand !== "all") next.set("brand", state.brand);
       if (state.query) next.set("q", state.query);
       if (state.sort !== "featured") next.set("sort", state.sort);
+      attribution.forEach((value, key) => next.set(key, value));
       const query = next.toString();
       window.history.replaceState(
         null,
@@ -336,6 +346,13 @@
       }
 
       if (list.length === 0) {
+        if (state.query && window.RH_ANALYTICS) {
+          const searchKey = state.query + "|0";
+          if (searchKey !== lastSearchEvent) {
+            window.RH_ANALYTICS.search(state.query, 0);
+            lastSearchEvent = searchKey;
+          }
+        }
         const empty = document.createElement("div");
         empty.className = "empty-state span-all";
         const strong = document.createElement("strong");
@@ -367,6 +384,20 @@
         return;
       }
 
+      if (state.query && window.RH_ANALYTICS) {
+        const searchKey = state.query + "|" + list.length;
+        if (searchKey !== lastSearchEvent) {
+          window.RH_ANALYTICS.search(state.query, list.length);
+          lastSearchEvent = searchKey;
+        }
+      }
+      if (window.RH_ANALYTICS) {
+        const listName = [
+          state.cat === "all" ? "Todas las categorías" : catLabel(state.cat),
+          state.brand === "all" ? "" : availableBrands.find((brand) => brand.slug === state.brand)?.label,
+        ].filter(Boolean).join(" — ");
+        window.RH_ANALYTICS.viewItemList(listName, list);
+      }
       list.forEach((p, i) => grid.appendChild(productCard(p, i % 8)));
       initReveals();
     }

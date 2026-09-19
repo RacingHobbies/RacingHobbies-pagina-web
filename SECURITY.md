@@ -36,10 +36,9 @@ propio.
 - Corregidos: bloqueo Apache de archivos ocultos y extensiones en mayúsculas,
   caché de JS/CSS, ruta de protección en errores 404 anidados, publicación
   sin borrados recursivos y lectura de registros CAA.
-- El dominio comercial `racinghobbiesec.com`, su DNS y el hosting anterior no
-  se modificaron. Su migración queda deliberadamente pendiente hasta que se
-  decida adquirir o conectar un dominio; entonces habrá que volver a verificar
-  SSL, DNS, SPF/DMARC y redirecciones canónicas.
+- El dominio público verificado es `racinghobbies.net`; sus cabeceras, rutas
+  limpias y respuestas 404 se validan directamente contra Cloudflare. Cualquier
+  dominio alternativo debe redirigir a este origen antes de indexarse.
 - El entregable verificado es
   `.release-artifacts-Etpg2W/racing-hobbies.tar.gz`: **361 archivos, 8 páginas
   y 86 referencias SRI verificadas**. Se extrajo a una carpeta temporal y se
@@ -117,7 +116,7 @@ Las pruebas de métodos de escritura se ejecutan en un servidor de prueba aislad
 El verificador público usa GET/HEAD; un `200` de un challenge no prueba que se
 haya escrito o borrado contenido y tampoco confirma el bloqueo del origen.
 El servidor también debe redirigir HTTP a HTTPS antes de servir contenido. El
-dominio canónico es `https://racinghobbiesec.com/`; conviene redirigir
+dominio canónico es `https://racinghobbies.net/`; conviene redirigir
 `www` a ese origen para reducir la superficie pública.
 El certificado TLS debe renovarse con antelación; el verificador exige al menos
 30 días de vigencia restante.
@@ -131,7 +130,7 @@ endpoints de estado del servidor.
 Comprueba la capa DNS con:
 
 ```bash
-./scripts/verify-domain-security.sh racinghobbiesec.com
+./scripts/verify-domain-security.sh racinghobbies.net
 ```
 
 Activa DNSSEC coordinando el proveedor DNS y el registrador. Restringe CAA a
@@ -139,7 +138,7 @@ las autoridades que realmente utilice el hosting para emitir y renovar todos
 los certificados. Ejemplo **solo si el proveedor usa Let's Encrypt**:
 
 ```text
-racinghobbiesec.com. CAA 0 issue "letsencrypt.org"
+racinghobbies.net. CAA 0 issue "letsencrypt.org"
 ```
 
 No elimines otras autoridades sin confirmar que ningún servicio las necesita.
@@ -156,7 +155,7 @@ proveedor: en ese caso hay que añadir el mecanismo `include` correspondiente.
 Después del despliegue, valida el dominio real:
 
 ```bash
-./scripts/verify-production-security.sh https://racinghobbiesec.com/
+./scripts/verify-production-security.sh https://racinghobbies.net/
 ```
 
 El verificador debe terminar con éxito. Si falla diciendo que el contenido no
@@ -164,14 +163,15 @@ parece el sitio actual o que faltan cabeceras, el dominio todavía está sirvien
 otra versión o el hosting no aplica `_headers`; no debe considerarse publicado
 de forma segura.
 
-## Publicación en InfinityFree
+## Publicación alternativa en Apache/cPanel
 
-El DNS actual apunta a InfinityFree. En el panel del proveedor:
+Si el sitio se migra desde Cloudflare Pages a Apache/cPanel, coordina estos
+pasos con el proveedor antes de cambiar el DNS:
 
-1. Renueva o reinstala el certificado SSL para `racinghobbiesec.com` y
-   `www.racinghobbiesec.com`.
+1. Renueva o reinstala el certificado SSL para `racinghobbies.net` y
+   `www.racinghobbies.net`.
 2. Activa la redirección HTTPS y configura `www` para redirigir al dominio
-   canónico `https://racinghobbiesec.com/`.
+   canónico `https://racinghobbies.net/`.
 3. Extrae el comprimido verificado en una carpeta vacía y sube **su contenido**
    al directorio público (`htdocs`), incluyendo `.htaccess`; no subas el
    comprimido, su manifiesto ni la raíz del proyecto.
@@ -189,3 +189,33 @@ Cloudflare Pages aplica `_headers`, incluidos HSTS, `frame-ancestors` y el resto
 de cabeceras obligatorias. GitHub Pages está desactivado. Si el sitio se migra
 en el futuro a Apache o Nginx, usa respectivamente `.htaccess` o
 `nginx-security-headers.conf.example`.
+
+Pages no admite redirecciones a nivel de dominio dentro de `_redirects`. Para
+que `https://www.racinghobbies.net/*` llegue al origen canónico, crea en
+Cloudflare una regla Bulk Redirect hacia
+`https://racinghobbies.net/$1` con código permanente, siguiendo la
+[documentación oficial de Cloudflare](https://developers.cloudflare.com/pages/how-to/www-redirect/).
+El verificador público mantiene esta comprobación y fallará hasta que esa
+regla externa exista; no se considera una configuración completada desde el
+repositorio.
+
+## Medición y consentimiento
+
+El sitio carga `js/consent.min.js` antes de `js/gtm-loader.min.js`. No usa un
+iframe `noscript` de GTM, para que JavaScript desactivado tampoco pueda iniciar
+una solicitud de medición sin elección. El estado
+inicial de Consent Mode es `analytics_storage=denied`; el visitante puede
+aceptar o rechazar la medición y cambiar esa decisión en la página de
+privacidad. GTM y el cliente oficial de GA4 no se descargan mientras no exista
+una aceptación; solo al aceptar se actualiza el estado a `granted` y se activan
+las etiquetas de medición. El contenedor publicado es `GTM-PHWK4J3L` y la
+propiedad es `G-15799391904`.
+
+La capa de datos no incluye campos de contacto ni el texto del pedido. Las
+búsquedas que parecen correos o teléfonos se descartan antes de entrar a la
+capa. La versión publicada de GTM mantiene únicamente la etiqueta de Google
+para `page_view`; los eventos de negocio salen por el cliente oficial de GA4
+desde la misma capa, para que cada evento llegue una sola vez. Si cambia la
+propiedad o el contenedor, actualiza primero el módulo local, sus pruebas, la
+CSP y esta documentación; después publica una nueva versión de GTM y valida
+los eventos en producción.
