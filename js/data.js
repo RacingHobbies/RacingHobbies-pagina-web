@@ -381,6 +381,7 @@ const RH_PRODUCTS = Object.freeze([
     cat: "aviones",
     price: 285,
     tag: "nuevo",
+    availability: "agotado",
     img: "assets/img/ranger-v2.webp",
     desc: "El avión ideal para empezar: estable, resistente y listo para volar, con despegue corto y control suave.",
     specs: ["Listo para volar (RTF)", "Ideal principiantes", "Despegue corto", "Vuelo estable"],

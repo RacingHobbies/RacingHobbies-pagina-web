@@ -144,7 +144,8 @@
           Number.isInteger(it.qty) &&
           it.qty > 0 &&
           it.qty <= 99 &&
-          getProduct(it.id);
+          getProduct(it.id) &&
+          getProduct(it.id).availability !== "agotado";
         if (valid) seen.add(it.id);
         return Boolean(valid);
       });
@@ -176,7 +177,7 @@
 
   function addToCart(id, qty) {
     const p = getProduct(id);
-    if (!p) return;
+    if (!p || p.availability === "agotado") return;
     const n = Math.max(1, Math.min(99, qty || 1));
     const existing = cart.find((it) => it.id === id);
     if (existing) {
@@ -464,6 +465,7 @@
     const p = getProduct(id);
     const backdrop = $("#rh-modal-backdrop");
     if (!p || !backdrop) return;
+    const soldOut = p.availability === "agotado";
     clearTimeout(modalHideTimer);
     modalReturnFocus = document.activeElement;
 
@@ -505,13 +507,16 @@
     const btn = document.createElement("button");
     btn.className = "btn btn-ink btn-sm";
     btn.type = "button";
-    btn.textContent = "Agregar al carrito";
-    btn.addEventListener("click", () => {
-      addToCart(p.id, 1);
-      const returnTarget = modalReturnFocus;
-      closeProductModal(false);
-      openCart(returnTarget);
-    });
+    btn.textContent = soldOut ? "Agotado" : "Agregar al carrito";
+    btn.disabled = soldOut;
+    if (!soldOut) {
+      btn.addEventListener("click", () => {
+        addToCart(p.id, 1);
+        const returnTarget = modalReturnFocus;
+        closeProductModal(false);
+        openCart(returnTarget);
+      });
+    }
     foot.append(price, btn);
 
     body.append(cat, title, desc, specs, foot);
@@ -545,8 +550,9 @@
 
   function productCard(p, delayIndex, variant) {
     const dark = variant === "tile";
+    const soldOut = p.availability === "agotado";
     const card = document.createElement("article");
-    card.className = (dark ? "tile" : "prod-card") + " reveal";
+    card.className = (dark ? "tile" : "prod-card") + (soldOut ? " is-sold-out" : "") + " reveal";
     // Toda la tarjeta abre la ficha rápida (el handler prioriza [data-add],
     // así que el botón "Agregar" sigue funcionando sin abrir el modal).
     card.dataset.detail = p.id;
@@ -560,11 +566,14 @@
     media.setAttribute("aria-label", "Ver detalle de " + p.name);
     media.dataset.detail = p.id;
     media.appendChild(productImg(p));
-    if (p.tag) {
+    if (p.tag || soldOut) {
       const tag = document.createElement("span");
-      tag.className = (dark ? "tile-tag" : "prod-tag") + (p.tag === "oferta" ? " hot" : "");
+      tag.className =
+        (dark ? "tile-tag" : "prod-tag") +
+        (p.tag === "oferta" ? " hot" : "") +
+        (soldOut ? " sold-out" : "");
       tag.textContent =
-        p.tag === "top" ? "Top ventas" : p.tag === "nuevo" ? "Nuevo" : "Oferta";
+        soldOut ? "Agotado" : p.tag === "top" ? "Top ventas" : p.tag === "nuevo" ? "Nuevo" : "Oferta";
       card.appendChild(tag);
     }
 
@@ -596,7 +605,10 @@
     add.className = "add-btn";
     add.type = "button";
     add.dataset.add = p.id;
-    add.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg> Agregar`;
+    add.disabled = soldOut;
+    add.innerHTML = soldOut
+      ? "Agotado"
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg> Agregar`;
 
     foot.append(price, add);
     body.append(cat, name, foot);
