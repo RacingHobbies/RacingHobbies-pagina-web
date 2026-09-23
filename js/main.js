@@ -82,6 +82,27 @@
     return RH_PRODUCTS.find((p) => p.id === id) || null;
   }
 
+  function isSoldOut(p) {
+    return Boolean(p && p.availability === "agotado");
+  }
+
+  function syncSoldOutState(element, product, watermarkHost) {
+    const soldOut = isSoldOut(product);
+    element.classList.toggle("is-sold-out", soldOut);
+    const host = watermarkHost || element;
+    let watermark = $(".sold-out-watermark", host);
+    if (soldOut && !watermark) {
+      const soldOutWatermark = document.createElement("span");
+      soldOutWatermark.className = "sold-out-watermark";
+      soldOutWatermark.textContent = "Agotado";
+      soldOutWatermark.setAttribute("aria-hidden", "true");
+      host.appendChild(soldOutWatermark);
+    } else if (!soldOut && watermark) {
+      watermark.remove();
+    }
+    return soldOut;
+  }
+
   function catLabel(slug) {
     const c = RH_CATEGORIES.find((c) => c.slug === slug);
     return c ? c.label : slug;
@@ -145,7 +166,7 @@
           it.qty > 0 &&
           it.qty <= 99 &&
           getProduct(it.id) &&
-          getProduct(it.id).availability !== "agotado";
+          !isSoldOut(getProduct(it.id));
         if (valid) seen.add(it.id);
         return Boolean(valid);
       });
@@ -177,7 +198,7 @@
 
   function addToCart(id, qty) {
     const p = getProduct(id);
-    if (!p || p.availability === "agotado") return;
+    if (!p || isSoldOut(p)) return;
     const n = Math.max(1, Math.min(99, qty || 1));
     const existing = cart.find((it) => it.id === id);
     if (existing) {
@@ -476,7 +497,7 @@
     const p = getProduct(id);
     const backdrop = $("#rh-modal-backdrop");
     if (!p || !backdrop) return;
-    const soldOut = p.availability === "agotado";
+    const soldOut = isSoldOut(p);
     if (window.RH_ANALYTICS) {
       window.RH_ANALYTICS.selectItem(p, document.body.classList.contains("page-catalog") ? "Catálogo" : "Modelos destacados");
       window.RH_ANALYTICS.viewItem(p);
@@ -565,9 +586,8 @@
 
   function productCard(p, delayIndex, variant) {
     const dark = variant === "tile";
-    const soldOut = p.availability === "agotado";
     const card = document.createElement("article");
-    card.className = (dark ? "tile" : "prod-card") + (soldOut ? " is-sold-out" : "") + " reveal";
+    card.className = (dark ? "tile" : "prod-card") + " reveal";
     // Toda la tarjeta abre la ficha rápida (el handler prioriza [data-add],
     // así que el botón "Agregar" sigue funcionando sin abrir el modal).
     card.dataset.detail = p.id;
@@ -578,19 +598,13 @@
     const media = document.createElement("button");
     media.className = dark ? "tile-media" : "prod-media";
     media.type = "button";
+    const soldOut = syncSoldOutState(card, p, media);
     media.setAttribute(
       "aria-label",
       "Ver detalle de " + p.name + (soldOut ? " — Producto agotado" : "")
     );
     media.dataset.detail = p.id;
     media.appendChild(productImg(p));
-    if (soldOut) {
-      const soldOutWatermark = document.createElement("span");
-      soldOutWatermark.className = "sold-out-watermark";
-      soldOutWatermark.textContent = "Agotado";
-      soldOutWatermark.setAttribute("aria-hidden", "true");
-      media.appendChild(soldOutWatermark);
-    }
     if (p.tag && !soldOut) {
       const tag = document.createElement("span");
       tag.className =
@@ -2201,21 +2215,11 @@
     const product = getProduct(visual.dataset.detail);
     if (!product) return;
 
-    const soldOut = product.availability === "agotado";
-    visual.classList.toggle("is-sold-out", soldOut);
+    const soldOut = syncSoldOutState(visual, product);
     visual.setAttribute(
       "aria-label",
       "Ver detalle de " + product.name + (soldOut ? " — Producto agotado" : "")
     );
-
-    let watermark = $(".sold-out-watermark", visual);
-    if (soldOut && !watermark) {
-      watermark = document.createElement("span");
-      watermark.className = "sold-out-watermark";
-      watermark.textContent = "Agotado";
-      watermark.setAttribute("aria-hidden", "true");
-      visual.appendChild(watermark);
-    }
 
     const addButton = $$(`[data-add="${product.id}"]`).find((button) =>
       button.closest(".feature-hero")
@@ -2231,8 +2235,7 @@
       const product = getProduct(item.dataset.product);
       if (!product) return;
 
-      const soldOut = product.availability === "agotado";
-      item.classList.toggle("is-sold-out", soldOut);
+      const soldOut = syncSoldOutState(item, product);
       if (!soldOut) return;
 
       item.setAttribute(
@@ -2240,13 +2243,6 @@
         item.getAttribute("aria-label") ||
           `${product.name} — Producto agotado`
       );
-      if (item.querySelector(".sold-out-watermark")) return;
-
-      const watermark = document.createElement("span");
-      watermark.className = "sold-out-watermark";
-      watermark.textContent = "Agotado";
-      watermark.setAttribute("aria-hidden", "true");
-      item.appendChild(watermark);
     });
   }
 

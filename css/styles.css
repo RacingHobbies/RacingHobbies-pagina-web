@@ -1048,6 +1048,13 @@ body:not(.page-home) .sec-dark,
   position: relative;
 }
 
+/* Mantiene el tratamiento de las composiciones estáticas de Inicio además de
+   la capa que cubre toda la ficha. */
+.is-sold-out .feature-img,
+.is-sold-out > img {
+  filter: brightness(0.7);
+}
+
 /* Una imagen ligeramente más oscura comunica el estado agotado sin borrar
    los colores del modelo ni competir con el rótulo rojo. El mismo selector
    cubre catálogo, vitrina de Inicio y producto protagonista. */
@@ -20278,4 +20285,55 @@ html.js body main .race-sector.atmo-on > .race-art {
   .modal-close {
     padding-top: 2px;
   }
+}
+
+/* Estado agotado: la capa cubre toda la ficha, no sólo los píxeles de la foto.
+   El rótulo queda encima y la capa no bloquea la navegación de la ficha. */
+.prod-card.is-sold-out,
+.tile.is-sold-out,
+.feature-visual.is-sold-out,
+.collage-item.is-sold-out {
+  position: relative;
+}
+
+.prod-media,
+.tile-media {
+  position: relative;
+}
+
+.prod-card.is-sold-out::after,
+.tile.is-sold-out::after,
+.feature-visual.is-sold-out::after,
+.collage-item.is-sold-out::after,
+.is-sold-out::after {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  border-radius: inherit;
+  background: rgba(0, 0, 0, 0.36);
+}
+
+.is-sold-out .sold-out-watermark {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  left: 50%;
+  max-width: 88%;
+  padding: 0.28em 0.56em;
+  border: 2px solid currentColor;
+  color: #e53935;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: clamp(0.95rem, 2.2vw, 1.8rem);
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0.84;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(-14deg);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.68), 0 0 10px rgba(255, 255, 255, 0.18);
 }
