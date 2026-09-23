@@ -26,9 +26,6 @@ output/
 # Notas de diseño internas
 docs/
 
-# Worktrees locales de desarrollo
-.worktrees/
-
 # Dependencias y temporales
 node_modules/
 .wrangler/
