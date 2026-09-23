@@ -39,9 +39,11 @@ test('el carril de categorías se puede montar antes de crear sus envoltorios en
     css,
     /editorial-garage\[data-lando-horizontal\][\s\S]*?> \.collage-item[\s\S]*?width: max\(220px, min\(40vw, 300px\)\) !important;/
   );
+  // Cabecera encima y carril a todo el ancho: con el titular en una columna
+  // lateral las fichas pasaban por debajo del texto al desplazarse.
   assert.match(
     css,
-    /editorial-garage\.rh-rail-built > \.container,[\s\S]*?grid-template-columns: minmax\(178px, 0\.82fr\) minmax\(0, 2fr\) !important;/
+    /editorial-garage\.rh-rail-built > \.container,[\s\S]*?display: flex !important;\s*\n\s*flex-direction: column !important;/
   );
 });
 
@@ -53,19 +55,34 @@ test('los accesos flotantes no tapan tarjetas durante un carril móvil horizonta
   );
 });
 
-test('el teléfono girado conserva una sola escena completa por sección', () => {
+test('el teléfono girado no encierra las páginas internas en un scroll propio', () => {
   const css = formatParitySource();
-  assert.match(
+  // Cada sección interna llegó a medir 100svh con `overflow-y: auto`: el
+  // catálogo dejaba 102px de resultados y el formulario de contacto quedaba
+  // recortado. Las páginas internas deben correr en flujo natural.
+  assert.doesNotMatch(
     css,
-    /@media \(max-width: 899px\) and \(orientation: landscape\) and \(max-height: 500px\) \{[\s\S]*?\.page-home \.ln-manifesto,[\s\S]*?height: 100svh !important;/
+    /body:not\(\.page-home\) main > section:not\(\[data-lando-horizontal\]\)[^{]*\{[^}]*max-height: 100svh/
   );
-  assert.match(
-    css,
-    /body:not\(\.page-home\) main > section:not\(\[data-lando-horizontal\]\)[\s\S]*?height: 100svh !important;/
-  );
-  assert.match(
+  assert.doesNotMatch(css, /\.page-catalog \.catalog-section \.prod-grid \{[^}]*overflow-y: auto/);
+});
+
+test('el manifiesto conserva su escena animada también en apaisado', () => {
+  assert.doesNotMatch(
     mainSource(),
-    /orientation: landscape\) and \(max-height: 500px\)"\)\.matches\n\s*\) return;/
+    /initMobileManifestoMotion[\s\S]{0,600}orientation: landscape\) and \(max-height: 500px\)"\)\.matches\n\s*\) return;/
+  );
+  assert.match(
+    formatParitySource(),
+    /\.ln-manifesto\.rh-mobile-manifesto-motion \{\s*\n\s*min-height: 200svh !important;/
+  );
+});
+
+test('la cabecera se recoge al bajar sólo en apaisado de teléfono', () => {
+  assert.match(mainSource(), /header\.classList\.toggle\("rh-header-tucked", y > lastHeaderY\)/);
+  assert.match(
+    formatParitySource(),
+    /@media \(orientation: landscape\) and \(max-height: 500px\) \{[\s\S]*?\.site-header\.rh-header-tucked \.logo,/
   );
 });
 

@@ -421,6 +421,21 @@
     max-width: 6.42em !important;
   }
 
+  /* En la portada el titular del carril va en UNA línea sobre las fichas,
+     como en la referencia ancha: así el carril tiene todo el ancho y ninguna
+     ficha pasa jamás por debajo del texto. */
+  html.lando-anim .page-home .editorial-garage.rh-rail-built .sec-title,
+  html.lando-anim .page-home .home-showcase.rh-rail-built .sec-title {
+    max-width: none !important;
+    font-size: min(6.4vw, 9.6svh) !important;
+    white-space: nowrap !important;
+  }
+
+  html.lando-anim .page-home .editorial-garage.rh-rail-built .sec-title .accent,
+  html.lando-anim .page-home .home-showcase.rh-rail-built .sec-title .accent {
+    display: inline-block !important;
+  }
+
   html.lando-anim [data-lando-horizontal] .sec-head,
   html.lando-anim [data-lando-horizontal] .vitrina-head {
     margin-bottom: 3svh !important;
@@ -447,39 +462,49 @@
     max-height: none !important;
   }
 
-  /* En vertical la cabecera va encima del carril. Con sólo 390px de alto esa
-     suma dejaba a las tarjetas una banda de 137px: la foto se reducía a una
-     miniatura y se cortaban los controles. En apaisado hay ancho de sobra,
-     así que ambos elementos comparten la escena. Reservar la franja del logo
-     evita que el titular nazca debajo de él y el carril conserva el mismo
-     movimiento ligado al scroll; sólo cambia su encuadre. */
+  /* Cabecera arriba y carril debajo a todo el ancho, igual que en pantalla
+     completa. La versión anterior ponía el titular en una columna al lado
+     del carril, pero el carril se desplaza con `transform` y las fichas
+     pasaban por DEBAJO del titular: texto sobre fotos en cada escena. */
   html.lando-anim .page-home .editorial-garage.rh-rail-built > .container,
   html.lando-anim .page-home .home-showcase.rh-rail-built > .container {
-    display: grid !important;
-    grid-template-columns: minmax(178px, 0.82fr) minmax(0, 2fr) !important;
+    display: flex !important;
+    flex-direction: column !important;
     align-items: stretch !important;
-    column-gap: clamp(18px, 2.8vw, 28px) !important;
-    padding-left: clamp(116px, 14vw, 132px) !important;
+    gap: clamp(8px, 3svh, 16px) !important;
+    padding-left: 0 !important;
   }
 
   html.lando-anim .page-home .editorial-garage.rh-rail-built .sec-head,
   html.lando-anim .page-home .home-showcase.rh-rail-built .vitrina-head {
-    align-self: start !important;
+    flex: 0 0 auto !important;
     margin-bottom: 0 !important;
   }
 
+  html.lando-anim .page-home .editorial-garage.rh-rail-built .sec-head .kicker,
+  html.lando-anim .page-home .home-showcase.rh-rail-built .vitrina-head .kicker {
+    margin-bottom: 4px !important;
+  }
+
   html.lando-anim .page-home .home-showcase.rh-rail-built .vitrina-head {
-    flex-direction: column !important;
-    align-items: flex-start !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-end !important;
     justify-content: space-between !important;
-    gap: 14px !important;
+    gap: 16px !important;
+  }
+
+  html.lando-anim .page-home .home-showcase.rh-rail-built .vitrina-head .btn {
+    flex: 0 0 auto !important;
+    min-height: 40px !important;
   }
 
   html.lando-anim .page-home .editorial-garage.rh-rail-built [data-lando-htrack],
   html.lando-anim .page-home .home-showcase.rh-rail-built [data-lando-htrack] {
+    flex: 1 1 0 !important;
     min-width: 0 !important;
-    height: 100% !important;
-    align-self: stretch !important;
+    min-height: 0 !important;
+    height: auto !important;
   }
 
   /* --- Ficha destacada: vuelve a dos columnas ------------------------- */
@@ -1784,7 +1809,7 @@ body .static-step-card .step-media::after {
    son hermanos de la foto y no van envueltos en nada: con áreas se les manda
    a la misma columna sin tocar el HTML. `.rh-card-num` va en absoluto, así
    que no ocupa celda. */
-@media (max-width: 899px) and (orientation: landscape) and (max-height: 500px) {
+@media (orientation: landscape) and (max-height: 500px) {
   html.lando-anim body:not(.page-home) [data-lando-htrack] > .rh-hcard.static-step-card {
     width: min(62vw, 470px) !important;
     max-height: none !important;
@@ -3448,9 +3473,8 @@ html.lando-anim .sec-title.rh-has-diacritic,
    Así no se mezclan dos contenidos ni se dejan cajas sueltas en el borde.
    Este cierre está limitado estrictamente al teléfono en horizontal.
    ========================================================================== */
-@media (max-width: 899px) and (orientation: landscape) and (max-height: 500px) {
-  html.rh-mobile-motion .page-home .ln-manifesto,
-  html.rh-mobile-motion .page-home .brands-strip,
+@media (orientation: landscape) and (max-height: 500px) {
+  html.rh-mobile-motion .page-home .ln-manifesto:not(.rh-mobile-manifesto-motion),
   html.rh-mobile-motion .page-home .community-section,
   html.rh-mobile-motion .page-home .home-location,
   html.rh-mobile-motion .page-home .feature-hero {
@@ -3460,38 +3484,77 @@ html.lando-anim .sec-title.rh-has-diacritic,
     overflow: hidden !important;
   }
 
-  html.rh-mobile-motion .page-home .ln-manifesto-stage {
+  html.rh-mobile-motion .page-home .ln-manifesto:not(.rh-mobile-manifesto-motion) .ln-manifesto-stage {
     position: relative !important;
     top: auto !important;
     height: 100svh !important;
   }
 
+  /* Con la línea de tiempo montada el manifiesto es la misma escena fijada
+     que en vertical y en escritorio: las frases se encienden una a una
+     mientras el escenario queda anclado. Dos pantallas de recorrido bastan
+     para leerlo sin que la salida se mezcle con las categorías. */
+  html.rh-mobile-motion .page-home .ln-manifesto.rh-mobile-manifesto-motion {
+    min-height: 200svh !important;
+  }
+
   html.rh-mobile-motion .page-home .ln-manifesto-copy {
     width: min(88vw, 760px) !important;
     gap: 0.1em !important;
-    font-size: min(9vw, 8.4svh) !important;
+    font-size: min(8.6vw, 11svh) !important;
     line-height: 0.94 !important;
   }
 
-  html.rh-mobile-motion .page-home .brands-strip,
   html.rh-mobile-motion .page-home .community-section,
   html.rh-mobile-motion .page-home .home-location {
     display: flex !important;
     align-items: center !important;
   }
 
-  /* La columna editorial mantiene la jerarquía de la portada; la ficha ocupa
-     todo el panel disponible y la siguiente no asoma por el borde derecho. */
+  /* Las fichas de la portada se leen como en la referencia ancha: varias a
+     la vista y la siguiente asomando, que es lo que invita a seguir. */
   html.lando-anim .page-home .editorial-garage[data-lando-horizontal]
     [data-lando-htrack] > .collage-item,
-  html.lando-anim .page-home [data-lando-htrack] > .rh-hcard {
-    width: calc(100vw - clamp(270px, 38vw, 322px)) !important;
-    flex: 0 0 calc(100vw - clamp(270px, 38vw, 322px)) !important;
+  html.lando-anim .page-home .editorial-garage [data-lando-htrack] > .rh-hcard {
+    width: clamp(196px, 30vw, 280px) !important;
+    flex: 0 0 clamp(196px, 30vw, 280px) !important;
+  }
+
+  /* La foto ocupaba 98px de una ficha de 200: el 13% de relleno superior
+     está pensado para fichas de 480px de alto. Aquí la foto llena la ficha
+     por encima del número y el rótulo baja a una escala que no la aplasta. */
+  html.lando-anim .page-home .editorial-garage [data-lando-htrack] .collage-item img {
+    padding: 12px 12px 0 !important;
+    object-fit: contain !important;
+  }
+
+  html.lando-anim .page-home .editorial-garage [data-lando-htrack] .collage-caption {
+    padding: 2px 14px 12px !important;
+  }
+
+  html.lando-anim .page-home .editorial-garage [data-lando-htrack] .collage-caption strong {
+    font-size: min(3.2vw, 7svh) !important;
+  }
+
+  /* El número baja al renglón del rótulo, a la derecha: arriba quedaba
+     debajo de la foto, que ahora ocupa todo el alto disponible. */
+  html.lando-anim .page-home .editorial-garage [data-lando-htrack] .rh-card-num {
+    top: auto !important;
+    right: 14px !important;
+    bottom: 10px !important;
+    left: auto !important;
+    font-size: min(4.4vw, 9svh) !important;
+    line-height: 1 !important;
+  }
+
+  html.lando-anim .page-home .home-showcase [data-lando-htrack] > .rh-hcard {
+    width: clamp(318px, 46vw, 420px) !important;
+    flex: 0 0 clamp(318px, 46vw, 420px) !important;
   }
 
   html.lando-anim .page-home .editorial-garage.rh-rail-built [data-lando-htrack],
   html.lando-anim .page-home .home-showcase.rh-rail-built [data-lando-htrack] {
-    gap: 0 !important;
+    gap: clamp(10px, 1.8vw, 16px) !important;
     padding-right: 0 !important;
   }
 
@@ -3527,115 +3590,44 @@ html.lando-anim .sec-title.rh-has-diacritic,
 
   /* El logo ocupa la esquina superior izquierda: estas dos cejas arrancan a
      su derecha en vez de quedar ocultas detrás de él. */
-  .page-home .feature-tag {
-    padding-left: 120px !important;
-  }
 
-  .page-home .home-location .sec-head {
-    margin-left: 120px !important;
-  }
-
-  /* En una banda de 390px la marquesina siempre dejaba media marca cortada.
-     Aquí se conserva la misma familia de logotipos como una alineación limpia
-     y completa; las copias técnicas del bucle no forman parte de la escena. */
-  .page-home .brands-marquee {
-    overflow: visible !important;
-  }
-
-  .page-home .brands-track {
-    display: grid !important;
-    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-    align-items: center !important;
-    gap: clamp(10px, 2vw, 20px) !important;
-    width: 100% !important;
-    transform: none !important;
-    animation: none !important;
-  }
-
-  .page-home .brands-track > [aria-hidden="true"] {
-    display: none !important;
-  }
-
+  /* Las marcas conservan la marquesina animada de las demás pantallas: la
+     cinta es precisamente el movimiento de la sección. Sólo se acota el alto
+     de cada logotipo al de la banda. */
   .page-home .brands-track .brand-logo {
-    width: 100% !important;
-    min-width: 0 !important;
-    height: clamp(76px, 22svh, 104px) !important;
+    height: clamp(64px, 19svh, 92px) !important;
+  }
+}
+
+/* ===========================================================================
+   TELÉFONO GIRADO — PÁGINAS INTERNAS EN FLUJO NATURAL
+   ---------------------------------------------------------------------------
+   Antes cada sección interna se encerraba en una pantalla de 100svh con su
+   propio scroll: el catálogo dejaba 102px de resultados dentro de una caja,
+   el formulario de contacto quedaba recortado bajo el pie y el dedo se
+   quedaba atrapado entre dos scrolls. Ahora las páginas corren como en
+   pantalla completa y sólo se compacta lo que el alto no admite.
+   ========================================================================== */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Catálogo: buscador y los dos selectores en una sola fila, como en la
+     referencia ancha, y fichas más densas para que una pantalla muestre una
+     fila completa con precio y botón. */
+  .page-catalog .catalog-section .toolbar {
+    grid-template-columns: minmax(0, 1.45fr) repeat(2, minmax(0, 0.82fr)) !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
   }
 
-  /* Las páginas internas siguen la misma cadencia: el fondo y la siguiente
-     escena no se cuelan mientras se lee el contenido de la actual. Las
-     secciones largas se desplazan dentro de su propia pantalla. */
-  body:not(.page-home) main > section:not([data-lando-horizontal]),
-  body:not(.page-home) main > .pin-spacer > section:not([data-lando-horizontal]) {
-    box-sizing: border-box !important;
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    align-items: center !important;
-    height: 100svh !important;
-    min-height: 100svh !important;
-    max-height: 100svh !important;
-    overflow: hidden !important;
-  }
-
-  body:not(.page-home) .page-hero {
-    padding: clamp(76px, 18svh, 96px) 0 clamp(28px, 8svh, 44px) !important;
-  }
-
-  body:not(.page-home) .page-hero h1 {
-    max-width: 13ch !important;
-    font-size: min(12.5vw, 11svh) !important;
-    line-height: 0.88 !important;
-  }
-
-  body:not(.page-home) .page-hero > .container > p:last-of-type {
-    max-width: 62ch !important;
-    margin-top: 12px !important;
-    font-size: min(2.4vw, 2.5svh) !important;
-    line-height: 1.35 !important;
-  }
-
-  body:not(.page-home) main > section.catalog-section,
-  body:not(.page-home) main > section.contact-form-section,
-  body:not(.page-home) main > section.legal-section,
-  body:not(.page-home) main > section.about-story-section,
-  body:not(.page-home) main > section.about-vision-section,
-  body:not(.page-home) main > section.service-catalog-section,
-  body:not(.page-home) main > section.service-cta-section,
-  body:not(.page-home) main > section.pit-band {
-    align-items: stretch !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
-  }
-
-  /* El catálogo mantiene filtros fijos y reserva el desplazamiento sólo para
-     los resultados, en vez de convertir cada fila de productos en una página
-     alta y desconectada. */
-  .page-catalog .catalog-section > .container {
-    display: flex !important;
-    flex-direction: column !important;
-    width: calc(100% - 48px) !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    margin-inline: auto !important;
-    align-self: stretch !important;
-    height: 100svh !important;
-    min-height: 100% !important;
-    padding-top: clamp(78px, 18svh, 92px) !important;
-    padding-bottom: 8px !important;
-  }
-
-  .page-catalog .catalog-section {
-    padding-block: 0 !important;
+  .page-catalog .catalog-section .toolbar .search-wrap {
+    grid-column: auto !important;
   }
 
   .page-catalog .catalog-section .chips {
     flex-wrap: nowrap !important;
-    min-height: 43px !important;
     overflow-x: auto !important;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
+    margin-bottom: 10px !important;
   }
 
   .page-catalog .catalog-section .chips::-webkit-scrollbar {
@@ -3647,55 +3639,18 @@ html.lando-anim .sec-title.rh-has-diacritic,
   }
 
   .page-catalog .catalog-section .prod-grid {
-    flex: 1 1 0 !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-    overscroll-behavior: contain;
-    grid-auto-rows: max-content !important;
-    align-content: start !important;
+    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)) !important;
+    gap: 12px !important;
   }
 
-  .page-catalog .catalog-section .prod-card {
-    height: auto !important;
-    min-height: 230px !important;
-  }
-
-  /* IntersectionObserver observa el viewport, no el scroll interno de esta
-     escena: sin esta excepción las fichas quedan transparentes aunque ya
-     estén dentro del área de resultados. */
-  .page-catalog .catalog-section .prod-card.reveal {
-    opacity: 1 !important;
-    translate: none !important;
-  }
-
-  .page-catalog .catalog-section .toolbar {
-    grid-template-columns: minmax(0, 1.45fr) repeat(2, minmax(0, 0.82fr)) !important;
-    gap: 10px !important;
-    margin-bottom: 8px !important;
-  }
-
-  .page-catalog .catalog-section .toolbar .search-wrap {
-    grid-column: auto !important;
-  }
-
-  .page-catalog .catalog-section .chips {
-    margin-bottom: 10px !important;
-  }
-
-  .page-catalog .catalog-section .results-row {
-    margin-bottom: 8px !important;
-  }
-
-  /* Cuatro servicios entran en una retícula legible y estable, junto al
-     titular, en vez de empezar una segunda pantalla debajo de éste. */
+  /* Taller: los cuatro servicios comparten escena con el titular y su texto
+     vuelve a un cuerpo legible (antes bajaba a 7px). */
   .page-service .service-catalog-section > .container {
     display: grid !important;
-    grid-template-columns: minmax(190px, 0.72fr) minmax(0, 1.28fr) !important;
+    grid-template-columns: minmax(180px, 0.62fr) minmax(0, 1.38fr) !important;
     align-items: center !important;
-    gap: clamp(20px, 4vw, 38px) !important;
-    min-height: 100% !important;
-    padding-top: clamp(76px, 17svh, 92px) !important;
-    padding-bottom: 24px !important;
+    gap: clamp(18px, 3.4vw, 34px) !important;
+    transform: none !important;
   }
 
   .page-service .service-catalog-section .feature-row {
@@ -3706,50 +3661,344 @@ html.lando-anim .sec-title.rh-has-diacritic,
 
   .page-service .service-catalog-section .feature {
     min-height: 0 !important;
-    padding: 12px !important;
+    padding: 14px !important;
   }
 
   .page-service .service-catalog-section .feature svg {
     width: 22px !important;
     height: 22px !important;
-    margin-bottom: 5px !important;
+    margin-bottom: 6px !important;
   }
 
   .page-service .service-catalog-section .feature h3 {
     margin-bottom: 4px !important;
-    font-size: min(3.1vw, 2.5svh) !important;
+    font-size: 0.86rem !important;
   }
 
   .page-service .service-catalog-section .feature p {
-    font-size: min(2.15vw, 1.9svh) !important;
-    line-height: 1.22 !important;
+    font-size: 0.74rem !important;
+    line-height: 1.38 !important;
   }
 
-  .page-service .service-cta-section .sec-title,
-  .page-about .about-vision-section .sec-title {
-    font-size: min(9vw, 8.6svh) !important;
-    line-height: 0.92 !important;
+  /* El párrafo de portadilla heredaba 2.5svh (≈9px): ilegible en la mano. */
+  body:not(.page-home) .page-hero > .container > p:last-of-type {
+    max-width: 58ch !important;
+    font-size: 0.8rem !important;
+    line-height: 1.45 !important;
   }
 
-  .page-about .about-vision-section .big-quote {
-    font-size: min(9vw, 9svh) !important;
-    line-height: 0.92 !important;
+  /* WhatsApp es el canal de venta: vuelve en apaisado, algo más compacto y
+     pegado al borde para no morder fichas. La flecha de subir se alinea
+     encima con el mismo eje. */
+  .wa-float {
+    right: max(14px, env(safe-area-inset-right)) !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    width: 46px !important;
+    min-width: 46px !important;
+    height: 46px !important;
+    padding: 0 !important;
   }
 
-  .page-contact .contact-form-section > .container,
-  .page-garantia .legal-section > .container,
-  .page-privacy .legal-section > .container {
-    min-height: 100% !important;
-    padding-top: clamp(76px, 17svh, 92px) !important;
-    padding-bottom: 24px !important;
-  }
-
-  /* En una pantalla baja no existe un margen muerto para una utilidad fija.
-     El menú conserva el acceso a contacto; estas dos utilidades reaparecen
-     fuera de la portada y nunca pisan una ficha, imagen ni CTA. */
-  .wa-float,
   .back-top {
-    visibility: hidden !important;
+    right: calc(max(14px, env(safe-area-inset-right)) + 4px) !important;
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 56px) !important;
+    width: 38px !important;
+    height: 38px !important;
+  }
+}
+
+/* La cabecera se recoge al bajar y vuelve al subir (clase de `main.js`).
+   Sólo aquí: en apaisado de teléfono el logo y las dos acciones fijas pisaban
+   titulares, filtros y fichas en cada escena. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .site-header .logo,
+  .site-header .header-actions {
+    transition:
+      transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.3s ease,
+      filter 0.35s !important;
+  }
+
+  body:not(.menu-open) .site-header.rh-header-tucked .logo,
+  body:not(.menu-open) .site-header.rh-header-tucked .header-actions {
+    transform: translate3d(0, -130%, 0) !important;
+    opacity: 0 !important;
     pointer-events: none !important;
+  }
+}
+
+/* ===========================================================================
+   TELÉFONO GIRADO — COMUNIDAD EN DOS COLUMNAS
+   Titular y botones a la izquierda, abanico a la derecha. Apilados, el
+   abanico recibía 160px de los 390 y las fichas medían 59 × 90: siete sellos
+   de correo al pie de una escena vacía. En dos columnas la ficha recupera el
+   tamaño de un reel y la escena se lee de un vistazo, como en ancho.
+   ========================================================================== */
+@media (orientation: landscape) and (max-height: 500px) {
+  .page-home .community-section {
+    padding-block: clamp(56px, 16svh, 72px) clamp(14px, 4svh, 24px) !important;
+  }
+
+  .page-home .community-section .deck-wrap {
+    display: grid !important;
+    grid-template-columns: minmax(252px, 0.78fr) minmax(0, 1.42fr) !important;
+    grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+    grid-template-areas:
+      ". fan"
+      "head fan"
+      "links fan" !important;
+    align-items: center !important;
+    column-gap: clamp(12px, 3vw, 32px) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    padding-inline: max(24px, env(safe-area-inset-left)) max(24px, env(safe-area-inset-right)) !important;
+    text-align: left !important;
+  }
+
+  .page-home .community-section .sec-title .accent {
+    display: inline-block !important;
+    margin: 0 !important;
+  }
+
+  .page-home .community-section .deck-wrap > .reveal:first-child {
+    grid-area: head !important;
+    align-self: end !important;
+  }
+
+  .page-home .community-section .sec-title {
+    font-size: min(8.4vw, 12.4svh) !important;
+    line-height: 0.92 !important;
+    text-align: left !important;
+  }
+
+  .page-home .community-section .kicker {
+    justify-content: flex-start !important;
+  }
+
+  .page-home .community-section .social-links {
+    grid-area: links !important;
+    align-self: start !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    margin: clamp(12px, 4svh, 22px) 0 0 !important;
+  }
+
+  .page-home .community-section .social-links .btn {
+    min-height: 38px !important;
+    padding-inline: 11px !important;
+    font-size: 0.6rem !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  .page-home .community-section .social-fan {
+    grid-area: fan !important;
+    align-self: stretch !important;
+    --fan-card-w: min(17vw, 30svh);
+    /* En `translateX` un porcentaje se mide sobre la ficha, no sobre el
+       abanico: la apertura se toma del ancho de la columna con `cqw`. */
+    container-type: inline-size;
+    --fan-span: calc(50cqw - var(--fan-card-w) * 0.62);
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+  }
+
+  .page-home .community-section .social-fan .deck-card {
+    width: var(--fan-card-w) !important;
+    height: calc(var(--fan-card-w) * 1.52) !important;
+    border-radius: 18px !important;
+  }
+
+  .page-home .community-section .social-fan .deck-card:nth-child(1) {
+    --fan-x: calc(var(--fan-span) * -1);
+    --fan-y: -4svh;
+  }
+
+  .page-home .community-section .social-fan .deck-card:nth-child(2) {
+    --fan-x: calc(var(--fan-span) * -0.66);
+    --fan-y: -9svh;
+  }
+
+  .page-home .community-section .social-fan .deck-card:nth-child(3) {
+    --fan-x: calc(var(--fan-span) * -0.33);
+    --fan-y: -12svh;
+  }
+
+  .page-home .community-section .social-fan .deck-card:nth-child(4) {
+    --fan-x: 0px;
+    --fan-y: -13svh;
+  }
+
+  .page-home .community-section .social-fan .deck-card:nth-child(5) {
+    --fan-x: calc(var(--fan-span) * 0.33);
+    --fan-y: -12svh;
+  }
+
+  .page-home .community-section .social-fan .deck-card:nth-child(6) {
+    --fan-x: calc(var(--fan-span) * 0.66);
+    --fan-y: -9svh;
+  }
+
+  .page-home .community-section .social-fan .deck-card:nth-child(7) {
+    --fan-x: var(--fan-span);
+    --fan-y: -4svh;
+  }
+}
+
+/* ===========================================================================
+   TELÉFONO GIRADO — UBICACIÓN
+   Titular en una línea y datos a la izquierda, tarjeta del mapa a la
+   derecha a todo el alto. Antes el titular iba sangrado 120px para esquivar
+   el logo (desalineado del resto) y la escena se cortaba a 100svh aunque el
+   contenido midiera más: "Email" y "Formas de pago" quedaban fuera. Ahora la
+   escena mide al menos una pantalla y crece si el alto no alcanza.
+   ========================================================================== */
+@media (orientation: landscape) and (max-height: 500px) {
+  html.rh-mobile-motion .page-home .home-location,
+  .page-home .home-location {
+    height: auto !important;
+    min-height: 100svh !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: clamp(64px, 18svh, 80px) 0 clamp(12px, 4svh, 20px) !important;
+  }
+
+  .page-home .home-location > .container {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr) !important;
+    grid-template-rows: auto 1fr !important;
+    grid-template-areas:
+      "head map"
+      "info map" !important;
+    gap: clamp(10px, 3svh, 16px) clamp(14px, 2.6vw, 24px) !important;
+    align-content: center !important;
+    width: calc(100% - 2 * max(24px, env(safe-area-inset-left))) !important;
+    max-width: none !important;
+    transform: none !important;
+  }
+
+  .page-home .home-location .info-grid {
+    display: contents !important;
+  }
+
+  .page-home .home-location .sec-head {
+    grid-area: head !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .page-home .home-location .sec-title {
+    font-size: min(6vw, 9.6svh) !important;
+    line-height: 0.95 !important;
+  }
+
+  .page-home .home-location .sec-title .accent {
+    display: inline-block !important;
+  }
+
+  .page-home .home-location .info-list {
+    grid-area: info !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-content: start !important;
+    gap: 6px !important;
+    margin: 0 !important;
+  }
+
+  /* Icono a la izquierda del dato, como en pantalla completa: apilado, cada
+     ficha gastaba 40px sólo en el icono y la dirección bajaba a cinco
+     renglones. */
+  .page-home .home-location .info-item {
+    display: grid !important;
+    grid-template-columns: 18px minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 9px !important;
+    min-height: 0 !important;
+    padding: 8px 10px !important;
+  }
+
+  .page-home .home-location .info-item svg {
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+  }
+
+  .page-home .home-location .info-item h3 {
+    margin-bottom: 3px !important;
+    font-size: 0.56rem !important;
+  }
+
+  .page-home .home-location .info-item p,
+  .page-home .home-location .info-item a {
+    font-size: 0.66rem !important;
+    line-height: 1.3 !important;
+  }
+
+  /* El relleno de 10px y el alto de 38px convertían cada teléfono en un
+     botón y partían la tarjeta en dos bloques separados. Dentro de la ficha
+     el enlace vuelve a ser texto; la ficha entera sigue siendo cómoda de
+     tocar. */
+  .page-home .home-location .info-item p a {
+    display: inline !important;
+    min-height: 0 !important;
+    padding: 2px 0 !important;
+  }
+
+  .page-home .home-location .map-card {
+    grid-area: map !important;
+    align-self: stretch !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+  }
+
+  .page-home .home-location .map-card .map-consent {
+    position: absolute !important;
+    inset: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 14px 14px 64px !important;
+    text-align: center !important;
+  }
+
+  .page-home .home-location .map-consent h3 {
+    font-size: min(3.4vw, 6.6svh) !important;
+  }
+}
+
+/* Ficha destacada: la ceja se alinea con el titular (antes iba sangrada
+   120px para esquivar el logo y quedaba suelta). El bloque de texto baja lo
+   justo para nacer por debajo de la franja del logo. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .page-home .feature-hero {
+    padding-block: clamp(56px, 17svh, 76px) clamp(10px, 3svh, 18px) !important;
+  }
+
+  .page-home .feature-tag {
+    padding-left: 0 !important;
+  }
+
+  .page-home .feature-visual {
+    height: calc(100svh - clamp(56px, 17svh, 76px) - clamp(10px, 3svh, 18px)) !important;
+  }
+
+  .page-home .feature-hero .hero-ctas {
+    transform: none !important;
+  }
+}
+
+/* El óvalo del hero conserva la medida del teléfono girado también por
+   encima de 900px de ancho (932 × 430): con la regla de escritorio medía
+   43vw y se salía 60px por el borde derecho. */
+@media (orientation: landscape) and (max-height: 500px) and (min-width: 900px) {
+  .page-home .hero-machine-stage {
+    width: min(34vw, 74svh) !important;
   }
 }

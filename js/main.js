@@ -1619,10 +1619,22 @@
     const backTop = $("#rh-back-top");
     if (header) {
       let headerFrame = null;
+      // Con un teléfono girado el logo y las acciones fijas se comen una
+      // quinta parte del alto. Se recogen al bajar y vuelven al subir; la
+      // regla que los aparta sólo existe en ese formato (format-parity.css).
+      let lastHeaderY = window.scrollY;
       const onScroll = () => {
         if (headerFrame) return;
         headerFrame = requestAnimationFrame(() => {
-          header.classList.toggle("scrolled", window.scrollY > 12);
+          const y = window.scrollY;
+          header.classList.toggle("scrolled", y > 12);
+          if (y < 140 || document.body.classList.contains("menu-open")) {
+            header.classList.remove("rh-header-tucked");
+            lastHeaderY = y;
+          } else if (Math.abs(y - lastHeaderY) > 8) {
+            header.classList.toggle("rh-header-tucked", y > lastHeaderY);
+            lastHeaderY = y;
+          }
           if (backTop) {
             backTop.classList.toggle("is-visible", window.scrollY > 720);
           }
@@ -3617,16 +3629,10 @@
     const g = window.gsap;
     const ST = window.ScrollTrigger;
     const manifesto = $(".ln-manifesto");
-    // En un teléfono girado cada sección es una sola escena de pantalla
-    // completa. El pin adicional del manifiesto la alargaba a más de dos
-    // pantallas y mezclaba su salida con la siguiente escena.
-    if (
-      REDUCED ||
-      !g ||
-      !ST ||
-      !manifesto ||
-      window.matchMedia("(orientation: landscape) and (max-height: 500px)").matches
-    ) return;
+    // También en un teléfono girado: el escenario queda anclado y las frases
+    // se encienden con el scroll, igual que en vertical y en escritorio. El
+    // recorrido en apaisado se acota en `format-parity.css`.
+    if (REDUCED || !g || !ST || !manifesto) return;
     g.registerPlugin(ST);
     manifesto.classList.add("rh-mobile-manifesto-motion");
     initManifestoTimeline(g, ST, manifesto);
