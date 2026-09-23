@@ -1048,6 +1048,13 @@ body:not(.page-home) .sec-dark,
   position: relative;
 }
 
+/* Una imagen ligeramente más oscura comunica el estado agotado sin borrar
+   los colores del modelo ni competir con el rótulo rojo. */
+.is-sold-out .prod-media img,
+.is-sold-out .tile-media img {
+  filter: brightness(0.78);
+}
+
 .sold-out-watermark {
   position: absolute;
   z-index: 2;
