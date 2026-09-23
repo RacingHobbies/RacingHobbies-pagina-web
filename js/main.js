@@ -802,6 +802,9 @@
        sin mover un solo píxel.
      Los valores de `--rv` y el momento en que se aplican son los mismos: la
      animación no cambia, sólo el trabajo que cuesta pintarla. */
+  const scrollRevealDocTops = new WeakMap();
+  const scrollRevealDocBottoms = new WeakMap();
+
   function paintScrollReveals(options) {
     scrollRevealFrame = null;
     // GSAP y requestAnimationFrame pasan su tiempo actual como argumento. Sólo
@@ -823,13 +826,22 @@
     const from = vh * REVEAL_START;
     const span = vh * (REVEAL_START - REVEAL_END) || 1;
 
-    // 1. Sólo medidas.
+    // 1. Sólo medidas con caché de coordenadas de documento para evitar layout thrashing.
     for (let i = 0; i < total; i++) {
-      const rect = items[i].getBoundingClientRect();
-      // Fuera de pantalla con margen: no se toca. Lo que ya pasó conserva su
-      // último valor (1) y lo que aún no llega se queda sin `--rv`, o sea en 0.
+      const el = items[i];
+      let docTop = scrollRevealDocTops.get(el);
+      let docBottom = scrollRevealDocBottoms.get(el);
+      if (docTop === undefined || forceAll) {
+        const rect = el.getBoundingClientRect();
+        docTop = rect.top + y;
+        docBottom = rect.bottom + y;
+        scrollRevealDocTops.set(el, docTop);
+        scrollRevealDocBottoms.set(el, docBottom);
+      }
+      const top = docTop - y;
+      const bottom = docBottom - y;
       scrollRevealTops[i] =
-        rect.bottom < -240 || rect.top > vh + 240 ? null : rect.top;
+        bottom < -240 || top > vh + 240 ? null : top;
     }
 
     // 2. Sólo escrituras.
@@ -855,7 +867,7 @@
   // que cambie el scroll (redimensionar, `load`, rehacer la lista).
   function repaintScrollReveals() {
     lastRevealScroll = -1;
-    paintScrollReveals();
+    paintScrollReveals(true);
   }
 
   function queueScrollReveals() {
@@ -920,17 +932,37 @@
     );
     const centers = [];
     const values = [];
+    let docGeometry = null;
 
-    // Igual que en los reveals: medir todo, escribir después. El navegador
-    // maqueta una vez por frame en lugar de una vez por elemento.
+    const measureGeometry = () => {
+      const currentScroll = window.scrollY;
+      docGeometry = elements.map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          docCenter: rect.top + currentScroll + rect.height / 2,
+          halfHeight: rect.height / 2,
+        };
+      });
+    };
+
+    window.addEventListener("resize", () => { docGeometry = null; }, { passive: true });
+    window.addEventListener("load", () => { docGeometry = null; });
+
+    // Medición desacoplada del DOM para evitar reflows síncronos en cada frame de scroll.
     function update() {
       const viewportHeight = window.innerHeight;
+      const currentScroll = window.scrollY;
+      if (!docGeometry) measureGeometry();
+
       for (let i = 0; i < elements.length; i++) {
-        const rect = elements[i].getBoundingClientRect();
+        const geo = docGeometry[i];
+        const center = geo.docCenter - currentScroll;
+        const top = center - geo.halfHeight;
+        const bottom = center + geo.halfHeight;
         centers[i] =
-          rect.bottom < -120 || rect.top > viewportHeight + 120
+          bottom < -120 || top > viewportHeight + 120
             ? null
-            : rect.top + rect.height / 2;
+            : center;
       }
       for (let i = 0; i < elements.length; i++) {
         const center = centers[i];
@@ -958,10 +990,14 @@
     if (REDUCED || !window.matchMedia("(pointer: fine)").matches) return;
     $$("[data-tilt]").forEach((element) => {
       let frame = null;
+      let rect = null;
+      element.addEventListener("pointerenter", () => {
+        rect = element.getBoundingClientRect();
+      });
       element.addEventListener("pointermove", (event) => {
         if (frame) return;
         frame = requestAnimationFrame(() => {
-          const rect = element.getBoundingClientRect();
+          if (!rect) rect = element.getBoundingClientRect();
           const x = (event.clientX - rect.left) / rect.width - 0.5;
           const y = (event.clientY - rect.top) / rect.height - 0.5;
           element.style.transform =
@@ -972,6 +1008,7 @@
         });
       });
       element.addEventListener("pointerleave", () => {
+        rect = null;
         element.style.transform = "";
       });
     });
@@ -1410,19 +1447,47 @@
     if (REDUCED || !window.matchMedia("(pointer:fine)").matches) return;
     let pointerFrame = null;
     let pendingPointer = null;
+    let activeCard = null;
+    let activeRect = null;
+
+    const clearActiveCard = () => {
+      activeCard = null;
+      activeRect = null;
+    };
+    window.addEventListener("scroll", clearActiveCard, { passive: true });
+    window.addEventListener("resize", clearActiveCard, { passive: true });
+
     document.addEventListener("pointermove", (event) => {
       pendingPointer = event;
       if (pointerFrame) return;
       pointerFrame = requestAnimationFrame(() => {
-        const target = pendingPointer.target.closest(
-          ".prod-card, .tile, .collage-item:not(.static-story-visual), .deck-card"
-        );
+        const ptr = pendingPointer;
+        if (!ptr) {
+          pointerFrame = null;
+          return;
+        }
+        if (activeCard && activeCard.contains(ptr.target)) {
+          if (!activeRect) activeRect = activeCard.getBoundingClientRect();
+          const x = ((ptr.clientX - activeRect.left) / activeRect.width) * 100;
+          const y = ((ptr.clientY - activeRect.top) / activeRect.height) * 100;
+          activeCard.style.setProperty("--race-x", x.toFixed(1) + "%");
+          activeCard.style.setProperty("--race-y", y.toFixed(1) + "%");
+          pointerFrame = null;
+          return;
+        }
+
+        const target = ptr.target && ptr.target.closest
+          ? ptr.target.closest(".prod-card, .tile, .collage-item:not(.static-story-visual), .deck-card")
+          : null;
         if (target) {
-          const rect = target.getBoundingClientRect();
-          const x = ((pendingPointer.clientX - rect.left) / rect.width) * 100;
-          const y = ((pendingPointer.clientY - rect.top) / rect.height) * 100;
+          activeCard = target;
+          activeRect = target.getBoundingClientRect();
+          const x = ((ptr.clientX - activeRect.left) / activeRect.width) * 100;
+          const y = ((ptr.clientY - activeRect.top) / activeRect.height) * 100;
           target.style.setProperty("--race-x", x.toFixed(1) + "%");
           target.style.setProperty("--race-y", y.toFixed(1) + "%");
+        } else {
+          clearActiveCard();
         }
         pointerFrame = null;
       });
@@ -1642,16 +1707,32 @@
     const backTop = $("#rh-back-top");
     if (header) {
       let headerFrame = null;
+      let lastScrolled = null;
+      let lastBackTop = null;
+      let lastProgressStr = null;
       const onScroll = () => {
         if (headerFrame) return;
         headerFrame = requestAnimationFrame(() => {
-          header.classList.toggle("scrolled", window.scrollY > 12);
+          const sy = window.scrollY;
+          const isScrolled = sy > 12;
+          if (isScrolled !== lastScrolled) {
+            header.classList.toggle("scrolled", isScrolled);
+            lastScrolled = isScrolled;
+          }
           if (backTop) {
-            backTop.classList.toggle("is-visible", window.scrollY > 720);
+            const isBackTop = sy > 720;
+            if (isBackTop !== lastBackTop) {
+              backTop.classList.toggle("is-visible", isBackTop);
+              lastBackTop = isBackTop;
+            }
           }
           const max = scrollRange();
-          const progress = max > 0 ? Math.min(1, window.scrollY / max) : 0;
-          header.style.setProperty("--scroll-progress", String(progress));
+          const progress = max > 0 ? Math.min(1, sy / max) : 0;
+          const progressStr = progress.toFixed(4);
+          if (progressStr !== lastProgressStr) {
+            header.style.setProperty("--scroll-progress", progressStr);
+            lastProgressStr = progressStr;
+          }
           headerFrame = null;
         });
       };
@@ -2489,10 +2570,17 @@
        3. Salvaguarda anti-blanco: nada visible puede quedar sin revelar
        ================================================================== */
     function revealVisible() {
-      $$(".reveal:not(.in)").forEach((el) => {
+      const pending = $$(".reveal:not(.in)");
+      const vh = window.innerHeight;
+      for (let i = 0; i < pending.length; i++) {
+        const el = pending[i];
         const r = el.getBoundingClientRect();
-        if (r.top < window.innerHeight && r.bottom > 0) el.classList.add("in");
-      });
+        if (r.top < vh && r.bottom > 0) {
+          el.classList.add("in");
+        } else if (r.top > vh + 300) {
+          break;
+        }
+      }
     }
     window.addEventListener("load", () => setTimeout(revealVisible, 500));
     // IntersectionObserver hace el trabajo principal. Esta salvaguarda queda
@@ -2916,14 +3004,17 @@
     if (window.matchMedia("(pointer:fine)").matches) {
       $$(".collage-item, .deck-card").forEach((card) => {
         if (card.closest(".editorial-garage")) return;
-        const img = card.querySelector("img");
         let frame = null;
         let pending = null;
+        let r = null;
+        card.addEventListener("pointerenter", () => {
+          r = card.getBoundingClientRect();
+        });
         card.addEventListener("pointermove", (e) => {
           pending = e;
           if (frame) return;
           frame = requestAnimationFrame(() => {
-            const r = card.getBoundingClientRect();
+            if (!r) r = card.getBoundingClientRect();
             const x = (pending.clientX - r.left) / r.width - 0.5;
             const y = (pending.clientY - r.top) / r.height - 0.5;
             card.style.transform =
@@ -2934,6 +3025,7 @@
           });
         });
         card.addEventListener("pointerleave", () => {
+          r = null;
           card.style.transform = "";
           if (img) img.style.transform = "";
         });
@@ -3120,9 +3212,12 @@
                 parent && parent.classList.contains("pin-spacer")
                   ? parent
                   : section;
+              const r = box.getBoundingClientRect();
               return {
                 el: section,
                 box,
+                docBottom: r.bottom + window.scrollY,
+                height: r.height,
                 isHero: section.matches(".hero, .page-hero, .error-page"),
                 // El adelanto sólo tiene sentido mientras el escenario es
                 // sticky. En el teléfono el manifiesto se lee como contenido
@@ -3155,7 +3250,13 @@
       } else if (typeof splitContactScenes.addListener === "function") {
         splitContactScenes.addListener(invalidatePauseSections);
       }
+      window.addEventListener("resize", invalidatePauseSections, { passive: true });
+      window.addEventListener("load", invalidatePauseSections);
+      if (window.ScrollTrigger) {
+        window.ScrollTrigger.addEventListener("refresh", invalidatePauseSections);
+      }
 
+      let lastPauseScroll = -1;
       const pauseAtSectionEdge = (instance) => {
         const current = instance.scroll;
         const viewportHeight = window.innerHeight;
@@ -3163,41 +3264,49 @@
         const sections = readPauseSections();
 
         if (instance.direction <= 0) {
+          lastPauseScroll = current;
           for (let index = 0; index < sections.length; index += 1) {
             const entry = sections[index];
             if (index === 0 && entry.isHero) continue;
-            if (entry.box.getBoundingClientRect().bottom - viewportHeight > edgeTolerance) {
+            if (sectionPauseArmed.get(entry.el) === true) continue;
+            const edgeDistance = entry.docBottom - current - viewportHeight;
+            if (edgeDistance > edgeTolerance) {
               sectionPauseArmed.set(entry.el, true);
             }
           }
           return;
         }
 
-        if (!hasScrollIntent || sectionPauseActive) return;
+        if (!hasScrollIntent || sectionPauseActive) {
+          lastPauseScroll = current;
+          return;
+        }
+
+        lastPauseScroll = current;
 
         for (let index = 0; index < sections.length; index += 1) {
           const entry = sections[index];
           const section = entry.el;
-          const rect = entry.box.getBoundingClientRect();
           const armed = sectionPauseArmed.get(section) ?? index > 0;
-          const edgeDistance = rect.bottom - viewportHeight;
           const previousEdge = sectionPreviousEdges.get(section);
+
+          if (!armed && previousEdge !== undefined && previousEdge <= -edgeTolerance * 2) {
+            continue;
+          }
+
+          const edgeDistance = entry.docBottom - current - viewportHeight;
           sectionPreviousEdges.set(section, edgeDistance);
           const crossedViewportEdge = previousEdge > 0 && edgeDistance <= 0;
           // El manifiesto usa un escenario sticky: si esperamos al píxel exacto
           // del borde, el sticky empieza a liberarse y el texto sube antes de
           // que llegue la pausa. Lo detenemos unos píxeles antes para mantener
           // la composición fija y que la lectura sea limpia.
-          // Es decir: `pauseLead` detiene la escena ANTES del pliegue. Las
-          // tarjetas de contacto piden lo contrario —parar con su borde ya
-          // dentro, para verse enmarcadas—, así que su valor es negativo, y el
-          // marco cede si la tarjeta no cabe entera en pantallas muy bajas.
           const pauseLead = entry.isManifesto
             ? 32
             : entry.isContactCard
               ? -Math.min(
                   CONTACT_CARD_FRAME,
-                  Math.max(0, viewportHeight - rect.height)
+                  Math.max(0, viewportHeight - entry.height)
                 )
               : 0;
           const isNearViewportEdge = edgeDistance <= pauseLead && edgeDistance >= -edgeTolerance;
@@ -3252,8 +3361,8 @@
       if (window.gsap && window.ScrollTrigger) {
         lenis.on("scroll", window.ScrollTrigger.update);
         window.gsap.ticker.add((time) => lenis.raf(time * 1000));
-        // Evita que un frame perdido provoque un salto brusco al recuperarse.
-        window.gsap.ticker.lagSmoothing(500, 33);
+        // Desactiva lag smoothing para que Lenis mantenga su física en lockstep sin saltos ni tirones.
+        window.gsap.ticker.lagSmoothing(0);
       } else {
         const raf = (time) => {
           lenis.raf(time);
@@ -3932,24 +4041,59 @@
         ".community-section",
       ];
       let themeFrame = null;
-      const updateHeaderTheme = () => {
-        const probe = Math.min(window.innerHeight * 0.18, 118);
-        const current =
-          themedSections.find((section) => {
-            const rect = section.getBoundingClientRect();
-            return rect.top <= probe && rect.bottom > probe;
-          }) || themedSections[0];
-        const accent = accentSelectors.some((selector) => current.matches(selector));
-        header.classList.toggle("rh-theme-accent", accent);
-        header.dataset.motionSector = current.dataset.raceSector || "00";
-        themeFrame = null;
+      let cachedThemeData = null;
+      let lastThemeSector = null;
+      let lastThemeAccent = null;
+
+      const refreshThemeData = () => {
+        const sy = window.scrollY || window.pageYOffset || 0;
+        cachedThemeData = themedSections.map((sec) => {
+          const rect = sec.getBoundingClientRect();
+          return {
+            sec,
+            top: rect.top + sy,
+            bottom: rect.bottom + sy,
+            accent: accentSelectors.some((selector) => sec.matches(selector)),
+            sector: sec.dataset.raceSector || "00",
+          };
+        });
       };
+
+      const updateHeaderTheme = () => {
+        themeFrame = null;
+        if (!cachedThemeData) refreshThemeData();
+        const probeY = (window.scrollY || window.pageYOffset || 0) + Math.min(window.innerHeight * 0.18, 118);
+        const item =
+          cachedThemeData.find((d) => d.top <= probeY && d.bottom > probeY) ||
+          cachedThemeData[0];
+        if (!item) return;
+
+        if (item.accent !== lastThemeAccent) {
+          header.classList.toggle("rh-theme-accent", item.accent);
+          lastThemeAccent = item.accent;
+        }
+        if (item.sector !== lastThemeSector) {
+          header.dataset.motionSector = item.sector;
+          lastThemeSector = item.sector;
+        }
+      };
+
       const queueTheme = () => {
         if (themeFrame) return;
         themeFrame = requestAnimationFrame(updateHeaderTheme);
       };
+
+      const invalidateTheme = () => {
+        cachedThemeData = null;
+        queueTheme();
+      };
+
       window.addEventListener("scroll", queueTheme, { passive: true });
-      window.addEventListener("resize", queueTheme, { passive: true });
+      window.addEventListener("resize", invalidateTheme, { passive: true });
+      window.addEventListener("load", invalidateTheme);
+      if (ST) {
+        ST.addEventListener("refresh", invalidateTheme);
+      }
       updateHeaderTheme();
     }
 
@@ -4059,13 +4203,20 @@
     ) {
       let heroPointerFrame = null;
       let heroPointerEvent = null;
+      let heroRect = null;
+      hero.addEventListener("pointerenter", () => {
+        heroRect = hero.getBoundingClientRect();
+      });
+      window.addEventListener("scroll", () => { heroRect = null; }, { passive: true });
+      window.addEventListener("resize", () => { heroRect = null; }, { passive: true });
       hero.addEventListener("pointermove", (event) => {
         heroPointerEvent = event;
+        if (!heroRect) heroRect = hero.getBoundingClientRect();
         if (heroPointerFrame) return;
         heroPointerFrame = requestAnimationFrame(() => {
-          const rect = hero.getBoundingClientRect();
-          const x = (heroPointerEvent.clientX - rect.left) / rect.width - 0.5;
-          const y = (heroPointerEvent.clientY - rect.top) / rect.height - 0.5;
+          if (!heroRect) return;
+          const x = (heroPointerEvent.clientX - heroRect.left) / heroRect.width - 0.5;
+          const y = (heroPointerEvent.clientY - heroRect.top) / heroRect.height - 0.5;
           g.to(heroVisual, {
             x: x * 22,
             y: y * 14,
@@ -4082,6 +4233,7 @@
         });
       }, { passive: true });
       hero.addEventListener("pointerleave", () => {
+        heroRect = null;
         g.to(heroVisual, {
           x: 0,
           y: 0,

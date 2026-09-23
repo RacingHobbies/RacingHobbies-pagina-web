@@ -978,6 +978,7 @@ body:not(.page-home) .sec-dark,
     inset 0 1px rgba(255, 255, 255, 0.05),
     0 20px 48px rgba(0, 0, 0, 0.18) !important;
   transform: translateZ(0);
+  isolation: isolate;
 }
 
 .prod-card::before {
@@ -1633,6 +1634,8 @@ section {
   align-items: center;
   transition: background 0.35s, border-color 0.35s, box-shadow 0.35s;
   border-bottom: 1px solid transparent;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .site-header.scrolled {
@@ -2264,6 +2267,7 @@ section {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  isolation: isolate;
   transition: transform 0.35s var(--ease-out), border-color 0.35s,
     box-shadow 0.35s;
 }
@@ -9999,6 +10003,8 @@ html.lando-anim .collage-item:hover .collage-caption { transform: translateY(-3p
       0 50px 90px -46px rgba(0, 0, 0, 0.95),
       0 0 0 1px rgba(255, 255, 255, 0.07);
     will-change: transform, opacity;
+    isolation: isolate;
+    contain: layout paint;
   }
   /* Halo de marca detrás del producto */
   html.lando-anim [data-lando-htrack] .rh-card::before {
@@ -20710,3 +20716,4 @@ html.rh-motion-ready .rh-internal-item.rh-in {
     transform: none !important;
   }
 }
+
