@@ -2342,7 +2342,13 @@
     // Cinco fichas, las mismas que categorías: con cuatro el carril horizontal
     // se quedaba corto y la sección caía a cuadrícula mientras la de al lado
     // seguía siendo galería.
-    const featured = RH_PRODUCTS.filter((p) => p.tag === "top" || p.tag === "nuevo").slice(0, 5);
+    const featured = RH_PRODUCTS
+      .filter(
+        (p) =>
+          p.availability !== "agotado" &&
+          (p.tag === "top" || p.tag === "nuevo")
+      )
+      .slice(0, 5);
     featured.forEach((p, i) => grid.appendChild(productCard(p, i, "tile")));
     syncFeaturedProductState();
     syncEditorialProductStates();
