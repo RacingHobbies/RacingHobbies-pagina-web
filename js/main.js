@@ -979,9 +979,16 @@
 
   /* ---------- Apertura cinematográfica (una vez por sesión) ---------- */
 
+  function markMotionReady() {
+    document.documentElement.classList.add("rh-motion-ready");
+  }
+
   function initLoader() {
     const loader = document.getElementById("rh-loader");
-    if (!loader) return;
+    if (!loader) {
+      markMotionReady();
+      return;
+    }
     const KEY = "rh_start_lights_seen_v2";
     const forcePreview = new URLSearchParams(window.location.search).get("intro") === "1";
     let seen = false;
@@ -994,6 +1001,7 @@
       document.body.classList.add("rh-intro-complete");
       loader.classList.add("done");
       loader.remove();
+      markMotionReady();
       if (!REDUCED) document.documentElement.classList.add("rh-hero-ready");
       return;
     }
@@ -1065,6 +1073,7 @@
       document.body.classList.remove("rh-intro-running", "rh-intro-reveal", "rh-intro-release");
       document.body.classList.add("rh-intro-complete");
       loader.remove();
+      markMotionReady();
       // Esta clase se añade DESPUÉS de retirar el velo. Así la entrada de
       // móvil se ve realmente, en vez de terminar detrás del loader.
       document.documentElement.classList.add("rh-hero-ready");

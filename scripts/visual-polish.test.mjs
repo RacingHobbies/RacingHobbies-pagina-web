@@ -31,6 +31,9 @@ test('the motion layer has a reduced-motion escape hatch', () => {
   assert.match(js, /const REDUCED = window\.matchMedia/);
   assert.match(css, /\.js \.reveal[\s\S]*?transition/);
   assert.match(css, /prefers-reduced-motion:\s*reduce[\s\S]*?\.js \.reveal/);
+  assert.match(js, /rh-motion-ready/);
+  assert.match(js, /REDUCED[\s\S]*rh-motion-ready/);
+  assert.match(js, /rh-intro-lock/);
 });
 
 test('every public page keeps the shared published stylesheet', () => {
