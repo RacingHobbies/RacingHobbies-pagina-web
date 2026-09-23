@@ -20637,7 +20637,8 @@ html.rh-motion-ready .rh-internal-item.rh-in {
 @media (max-width: 680px) {
   .consent-banner {
     right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
+    top: calc(var(--header-h) + 12px);
+    bottom: auto;
     width: calc(100vw - 24px);
     max-width: none;
     border-radius: 16px;
@@ -20649,6 +20650,17 @@ html.rh-motion-ready .rh-internal-item.rh-in {
 
   .consent-banner-actions .btn {
     flex: 1 1 130px;
+  }
+}
+
+@media (min-width: 681px) {
+  .consent-banner {
+    display: block;
+  }
+
+  .consent-banner-actions {
+    justify-content: flex-start;
+    margin-top: 12px;
   }
 }
 
