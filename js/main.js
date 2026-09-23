@@ -3295,10 +3295,21 @@
         // vacía. El remate cinematográfico se conserva únicamente en escritorio.
         const tailGap = () =>
           window.innerWidth <= 899 ? 0 : Math.min(120, Math.round(window.innerWidth * 0.1));
-        const distance = () =>
-          Math.max(0, track.scrollWidth - window.innerWidth + tailGap());
-        if (distance() < 300) {
-          // Sin recorrido no hay carril: la fila se queda como cuadrícula.
+        const distance = () => {
+          if (window.innerWidth <= 899) {
+            return Math.max(0, track.scrollWidth - window.innerWidth + tailGap());
+          }
+          // La fila empieza dentro de un contenedor centrado, no en x=0.
+          // Descontar su traslación actual mantiene la medida estable cuando
+          // ScrollTrigger recalcula la escena a mitad del recorrido.
+          const origin = track.getBoundingClientRect().left -
+            sec.getBoundingClientRect().left - (parseFloat(g.getProperty(track, "x")) || 0);
+          return Math.max(0, origin + track.scrollWidth - sec.clientWidth + tailGap());
+        };
+        if (distance() <= 1) {
+          // Sólo prescindir de la escena cuando no queda recorrido real.
+          // En escritorio Full HD aún quedan fichas fuera de pantalla con
+          // menos de 300px de recorrido; descartarlo las dejaba estáticas.
           sec.classList.remove("rh-rail-built");
           sec.removeAttribute("data-lando-horizontal");
           return;

@@ -28,4 +28,5 @@ docs/
 
 # Dependencias y temporales
 node_modules/
+.wrangler/
 *.log
