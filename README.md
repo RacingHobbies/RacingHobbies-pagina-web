@@ -115,7 +115,7 @@ documentación del repositorio.
 
 ## Datos reales configurados
 
-- **WhatsApp / celular:** 099 801 9836 (`js/config.js`)
+- **WhatsApp / celular:** 098 901 9836 (`js/config.js`)
 - **Fijo:** 02 334-1561 — **Email:** racinghobbiesquito@gmail.com
 - **Dirección:** Av. Eloy Alfaro N40-413 y Granados, frente a Petroecuador
 - **Horarios:** Lun 10:00–14:00 — Mar–Vie 9:30–18:30 — Sáb 9:30–16:30

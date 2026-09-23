@@ -96,7 +96,7 @@ test('las búsquedas con apariencia de correo o teléfono no salen al dataLayer'
   vm.runInNewContext(read('js/analytics.js'), { window, document, console, URL });
   window.RH_ANALYTICS.search('motor crawler', 4);
   window.RH_ANALYTICS.search('cliente@example.com', 4);
-  window.RH_ANALYTICS.search('+593 099 801 9836', 4);
+  window.RH_ANALYTICS.search('+593 098 901 9836', 4);
   const searches = window.dataLayer.filter(item => item.event === 'search');
   assert.equal(searches.length, 1);
   assert.equal(searches[0].search_term, 'motor crawler');

@@ -35,7 +35,7 @@ const allowList = hashes.join(" ");
 
 // Sustituye la lista completa de hashes de `script-src` y `script-src-elem`,
 // venga en el orden que venga y sean los que sean.
-const directivePattern = /(script-src(?:-elem)? 'self')((?: 'sha256-[A-Za-z0-9+/=]+')+)/g;
+const directivePattern = /(script-src(?:-elem)? 'self'[^;]*?)(?: 'sha256-[A-Za-z0-9+/=]+')+/g;
 
 const targets = [
   ...fs.readdirSync(".").filter((file) => file.endsWith(".html")),
