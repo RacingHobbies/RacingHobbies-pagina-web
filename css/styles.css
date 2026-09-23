@@ -20259,6 +20259,15 @@ html.js body main .race-sector.atmo-on > .race-art {
   white-space: nowrap;
 }
 
+/* El banner vive sobre una tarjeta clara: el hover global de `.btn-line`
+   usa un blanco translúcido y deja el botón de rechazo sin contraste. */
+.consent-banner-actions .btn-line:hover,
+.consent-banner-actions .btn-line:focus-visible {
+  color: var(--neo-ice) !important;
+  background: linear-gradient(145deg, rgba(54, 54, 54, 0.94), rgba(14, 14, 14, 0.96)) !important;
+  border-color: rgba(206, 206, 206, 0.58) !important;
+}
+
 .consent-banner-actions > a {
   color: var(--volt-deep);
   font-size: 0.76rem;
