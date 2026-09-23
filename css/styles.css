@@ -1049,10 +1049,26 @@ body:not(.page-home) .sec-dark,
 }
 
 /* Una imagen ligeramente más oscura comunica el estado agotado sin borrar
-   los colores del modelo ni competir con el rótulo rojo. */
+   los colores del modelo ni competir con el rótulo rojo. El mismo selector
+   cubre catálogo, vitrina de Inicio y producto protagonista. */
 .is-sold-out .prod-media img,
-.is-sold-out .tile-media img {
-  filter: brightness(0.78);
+.is-sold-out .tile-media img,
+.is-sold-out > img,
+.is-sold-out .feature-img {
+  filter: brightness(0.7) !important;
+}
+
+.feature-visual.is-sold-out {
+  position: relative;
+}
+
+/* El carril editorial tiene una regla histórica con `filter: none !important`;
+   esta versión específica mantiene el estado agotado también en Inicio y al
+   pasar el cursor. */
+.page-home .editorial-garage .collage-item.is-sold-out img,
+.page-home .editorial-garage .collage-item.is-sold-out:hover img,
+.page-home .editorial-garage .collage-item.is-sold-out:focus-visible img {
+  filter: brightness(0.7) !important;
 }
 
 .sold-out-watermark {

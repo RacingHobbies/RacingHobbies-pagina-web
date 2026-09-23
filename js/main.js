@@ -2195,6 +2195,61 @@
 
   /* ---------- Vitrina en la portada ---------- */
 
+  function syncFeaturedProductState() {
+    const visual = $(".feature-visual");
+    if (!visual) return;
+    const product = getProduct(visual.dataset.detail);
+    if (!product) return;
+
+    const soldOut = product.availability === "agotado";
+    visual.classList.toggle("is-sold-out", soldOut);
+    visual.setAttribute(
+      "aria-label",
+      "Ver detalle de " + product.name + (soldOut ? " — Producto agotado" : "")
+    );
+
+    let watermark = $(".sold-out-watermark", visual);
+    if (soldOut && !watermark) {
+      watermark = document.createElement("span");
+      watermark.className = "sold-out-watermark";
+      watermark.textContent = "Agotado";
+      watermark.setAttribute("aria-hidden", "true");
+      visual.appendChild(watermark);
+    }
+
+    const addButton = $$(`[data-add="${product.id}"]`).find((button) =>
+      button.closest(".feature-hero")
+    );
+    if (addButton) {
+      addButton.disabled = soldOut;
+      if (soldOut) addButton.textContent = "Agotado";
+    }
+  }
+
+  function syncEditorialProductStates() {
+    $$(".editorial-garage [data-product]").forEach((item) => {
+      const product = getProduct(item.dataset.product);
+      if (!product) return;
+
+      const soldOut = product.availability === "agotado";
+      item.classList.toggle("is-sold-out", soldOut);
+      if (!soldOut) return;
+
+      item.setAttribute(
+        "aria-label",
+        item.getAttribute("aria-label") ||
+          `${product.name} — Producto agotado`
+      );
+      if (item.querySelector(".sold-out-watermark")) return;
+
+      const watermark = document.createElement("span");
+      watermark.className = "sold-out-watermark";
+      watermark.textContent = "Agotado";
+      watermark.setAttribute("aria-hidden", "true");
+      item.appendChild(watermark);
+    });
+  }
+
   function renderFeatured() {
     const grid = $("#featured-grid");
     if (!grid) return;
@@ -2203,6 +2258,8 @@
     // seguía siendo galería.
     const featured = RH_PRODUCTS.filter((p) => p.tag === "top" || p.tag === "nuevo").slice(0, 5);
     featured.forEach((p, i) => grid.appendChild(productCard(p, i, "tile")));
+    syncFeaturedProductState();
+    syncEditorialProductStates();
   }
 
   /* ==========================================================================
