@@ -29,6 +29,10 @@ test('los productos agotados aparecen marcados y no se pueden añadir al carrito
   assert.match(mainSource, /soldOutWatermark/);
   assert.match(mainSource, /syncFeaturedProductState/);
   assert.match(mainSource, /syncEditorialProductStates/);
+  assert.match(
+    mainSource,
+    /p\.availability !== "agotado"[\s\S]*?p\.tag === "top" \|\| p\.tag === "nuevo"/
+  );
   assert.match(stylesSource, /\.sold-out-watermark[\s\S]*?color:\s*#e53935/);
   assert.match(stylesSource, /\.is-sold-out \.feature-img[\s\S]*?brightness\(0\.7\)/);
   assert.match(stylesSource, /\.is-sold-out > img[\s\S]*?brightness\(0\.7\)/);
