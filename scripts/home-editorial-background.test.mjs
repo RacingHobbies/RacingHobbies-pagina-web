@@ -20,6 +20,21 @@ test('la tarjeta editorial de pista conserva el marco y panel del resto', () => 
 });
 
 test('los recortes transparentes usan un contrato común en todas las tarjetas', () => {
+  const productCount = (dataSource.match(/^    id: "[^"]+",$/gm) || []).length;
+  const surfaceCount = (
+    dataSource.match(/^    imageSurface: "(?:photo|cutout)",$/gm) || []
+  ).length;
+  assert.ok(productCount > 0, 'debe haber productos declarados');
+  assert.equal(
+    surfaceCount,
+    productCount,
+    'cada producto nuevo debe declarar imageSurface explícitamente'
+  );
+  assert.match(dataSource, /const RH_IMAGE_SURFACES = Object\.freeze\(\["photo", "cutout"\]\)/);
+  assert.match(
+    dataSource,
+    /debe declarar imageSurface como "photo" o "cutout"/
+  );
   for (const id of [
     'lancia-delta',
     'golf-gti',
@@ -32,8 +47,8 @@ test('los recortes transparentes usan un contrato común en todas las tarjetas',
       new RegExp(`id: "${id}"[\\s\\S]*?imageSurface: "cutout"`)
     );
   }
-  assert.match(mainSource, /card\.dataset\.imageSurface = p\.imageSurface \|\| "photo"/);
-  assert.match(mainSource, /media\.dataset\.imageSurface = p\.imageSurface \|\| "photo"/);
+  assert.match(mainSource, /card\.dataset\.imageSurface = p\.imageSurface;/);
+  assert.match(mainSource, /media\.dataset\.imageSurface = p\.imageSurface;/);
   assert.match(stylesSource, /\.tile-media\[data-image-surface="cutout"\]::before/);
   assert.match(stylesSource, /\.prod-media\[data-image-surface="cutout"\]::before/);
   assert.match(

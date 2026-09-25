@@ -591,7 +591,7 @@
     // Toda la tarjeta abre la ficha rápida (el handler prioriza [data-add],
     // así que el botón "Agregar" sigue funcionando sin abrir el modal).
     card.dataset.detail = p.id;
-    card.dataset.imageSurface = p.imageSurface || "photo";
+    card.dataset.imageSurface = p.imageSurface;
     if (typeof delayIndex === "number") {
       card.style.setProperty("--d", Math.min(delayIndex * 0.06, 0.4) + "s");
     }
@@ -605,7 +605,7 @@
       "Ver detalle de " + p.name + (soldOut ? " — Producto agotado" : "")
     );
     media.dataset.detail = p.id;
-    media.dataset.imageSurface = p.imageSurface || "photo";
+    media.dataset.imageSurface = p.imageSurface;
     media.appendChild(productImg(p));
     if (p.tag && !soldOut) {
       const tag = document.createElement("span");
