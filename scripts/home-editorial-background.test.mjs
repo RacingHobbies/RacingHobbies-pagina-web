@@ -38,6 +38,10 @@ test('los recortes transparentes usan un contrato común en todas las tarjetas',
   assert.match(stylesSource, /\.prod-media\[data-image-surface="cutout"\]::before/);
   assert.match(
     stylesSource,
+    /\.tile-media\[data-image-surface="cutout"\]::before[\s\S]*?width:\s*86%[\s\S]*?height:\s*86%/
+  );
+  assert.match(
+    stylesSource,
     /\.tile-media\[data-image-surface="cutout"\] img[\s\S]*?width:\s*82%[\s\S]*?background:\s*transparent/
   );
 });

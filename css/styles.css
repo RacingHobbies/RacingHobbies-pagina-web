@@ -20397,7 +20397,7 @@ html.lando-anim .page-home .editorial-garage
   top: 7%;
   left: 7%;
   width: 86%;
-  aspect-ratio: 1;
+  height: 86%;
   pointer-events: none;
   background: #fff;
   box-shadow: 0 24px 34px -24px rgba(0, 0, 0, 0.42);
