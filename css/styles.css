@@ -20377,6 +20377,56 @@ html.lando-anim .page-home .editorial-garage
   background: #fff !important;
 }
 
+/* CONTRATO DE SUPERFICIE DE IMAGEN ----------------------------------------
+   Las fotos con fondo blanco ya traen su panel incorporado. Los recortes
+   transparentes no: si se dejan ocupar toda la caja flexible, su producto
+   queda visualmente más grande que el resto y puede invadir el borde o la
+   etiqueta. La superficie se declara en `RH_PRODUCTS.imageSurface` y aquí se
+   normaliza en todas las tarjetas, tanto en la vitrina como en el catálogo. */
+.tile-media[data-image-surface="cutout"],
+.prod-media[data-image-surface="cutout"] {
+  overflow: hidden;
+  background: #eef1f7 !important;
+}
+
+.tile-media[data-image-surface="cutout"]::before,
+.prod-media[data-image-surface="cutout"]::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 7%;
+  left: 7%;
+  width: 86%;
+  aspect-ratio: 1;
+  pointer-events: none;
+  background: #fff;
+  box-shadow: 0 24px 34px -24px rgba(0, 0, 0, 0.42);
+}
+
+.tile-media[data-image-surface="cutout"] img,
+.prod-media[data-image-surface="cutout"] img {
+  position: relative;
+  z-index: 1;
+  width: 82% !important;
+  height: 82% !important;
+  max-height: none !important;
+  flex: 0 0 auto !important;
+  object-fit: contain !important;
+  background: transparent !important;
+  mix-blend-mode: normal !important;
+}
+
+/* El carril horizontal da a todas las imágenes una altura flexible; el
+   contrato de recorte debe ganar a esa regla para conservar su escala. */
+html.lando-anim [data-lando-htrack] > .rh-hcard
+  .tile-media[data-image-surface="cutout"] img,
+html.lando-anim [data-lando-htrack] > .rh-hcard
+  .prod-media[data-image-surface="cutout"] img {
+  width: 82% !important;
+  height: 82% !important;
+  flex: 0 0 auto !important;
+}
+
 /* ===========================================================================
    V66 — VISUAL POLISH
    Una última capa compartida para que las páginas se sientan como un mismo
