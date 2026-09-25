@@ -20353,10 +20353,28 @@ html.js body main .race-sector.atmo-on > .race-art {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.68), 0 0 10px rgba(255, 255, 255, 0.18);
 }
 
-/* El recorte del Golf GTI usa transparencia en las esquinas; conserva el
-   lienzo blanco de las demás imágenes editoriales de la portada. */
+/* El recorte del Golf GTI usa transparencia en las esquinas. La imagen debe
+   conservarla para que el marco negro y el número de la ficha sigan visibles. */
 .page-home .editorial-garage .collage-item[data-product="golf-gti"] img {
-  background: #fff;
+  background: transparent;
+}
+
+/* Las otras imágenes de categorías ya traen su panel blanco dentro del
+   propio archivo. Golf GTI es un recorte transparente, así que se dibuja el
+   mismo panel en el área real de la imagen (no en toda la caja flexible). */
+html.lando-anim .page-home .editorial-garage
+  .collage-item[data-product="golf-gti"] .rh-card::after {
+  content: "" !important;
+  position: absolute;
+  z-index: 0;
+  top: 14.5%;
+  left: 9%;
+  width: 82%;
+  height: auto;
+  aspect-ratio: 1;
+  display: block !important;
+  pointer-events: none;
+  background: #fff !important;
 }
 
 /* ===========================================================================
