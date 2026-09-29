@@ -624,6 +624,12 @@
     cat.className = dark ? "tile-cat" : "prod-cat";
     cat.textContent = catLabel(p.cat);
 
+    const code = p.code ? document.createElement("p") : null;
+    if (code) {
+      code.className = "prod-sku";
+      code.textContent = "Código " + p.code;
+    }
+
     const name = document.createElement("h3");
     name.className = dark ? "tile-name" : "prod-name";
     const nameBtn = document.createElement("button");
@@ -651,7 +657,8 @@
       : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg> Agregar`;
 
     foot.append(price, add);
-    body.append(cat, name, foot);
+    if (code) body.append(cat, code, name, foot);
+    else body.append(cat, name, foot);
     card.append(media, body);
     return card;
   }
