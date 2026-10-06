@@ -56,6 +56,8 @@
         ],
       },
       { slug: "blade", label: "Blade", terms: ["blade"] },
+      { slug: "skyrc", label: "SkyRC", terms: ["skyrc"] },
+      { slug: "flysky", label: "FlySky", terms: ["flysky"] },
       { slug: "hangar-9", label: "Hangar 9", ids: ["ultra-stick", "arf-beast-60"] },
       { slug: "hobbyzone", label: "HobbyZone", terms: ["hobbyzone"] },
       { slug: "hexfly", label: "Hexfly", terms: ["hexfly"] },
@@ -252,6 +254,15 @@
       return normalizeText(value).replace(/\s+/g, "");
     }
 
+    function comparePrice(a, b, direction) {
+      const aHasPrice = Number.isFinite(a.price);
+      const bHasPrice = Number.isFinite(b.price);
+      if (!aHasPrice && !bHasPrice) return 0;
+      if (!aHasPrice) return 1;
+      if (!bHasPrice) return -1;
+      return direction * (a.price - b.price);
+    }
+
     function filterProducts() {
       let list = RH_PRODUCTS.slice();
 
@@ -281,10 +292,10 @@
 
       switch (state.sort) {
         case "price-asc":
-          list.sort((a, b) => a.price - b.price);
+          list.sort((a, b) => comparePrice(a, b, 1));
           break;
         case "price-desc":
-          list.sort((a, b) => b.price - a.price);
+          list.sort((a, b) => comparePrice(a, b, -1));
           break;
         case "name":
           list.sort((a, b) => a.name.localeCompare(b.name, "es"));

@@ -86,6 +86,10 @@
     return Boolean(p && p.availability === "agotado");
   }
 
+  function hasPrice(p) {
+    return Boolean(p && Number.isFinite(p.price) && p.price > 0);
+  }
+
   function syncSoldOutState(element, product, watermarkHost) {
     const soldOut = isSoldOut(product);
     element.classList.toggle("is-sold-out", soldOut);
@@ -116,7 +120,7 @@
 
   function safeProductAsset(value) {
     const asset = String(value || "");
-    return /^assets\/img\/[a-z0-9][a-z0-9/_-]*\.webp$/i.test(asset)
+    return /^assets\/img\/[a-z0-9][a-z0-9/_-]*\.(?:webp|jpe?g|png)$/i.test(asset)
       ? asset
       : "assets/img/logo-mark-180.webp";
   }
@@ -125,13 +129,15 @@
     const img = document.createElement("img");
     const asset = safeProductAsset(p.img);
     img.src = asset;
-    img.srcset =
-      asset.replace(/\.webp$/, "-480.webp") +
-      " 480w, " +
-      asset.replace(/\.webp$/, "-640.webp") +
-      " 640w, " +
-      asset +
-      (p.id === "tmaxx" ? " 600w" : " 800w");
+    if (/\.webp$/i.test(asset)) {
+      img.srcset =
+        asset.replace(/\.webp$/, "-480.webp") +
+        " 480w, " +
+        asset.replace(/\.webp$/, "-640.webp") +
+        " 640w, " +
+        asset +
+        (p.id === "tmaxx" ? " 600w" : " 800w");
+    }
     img.sizes = "(max-width: 680px) 84vw, (max-width: 1100px) 44vw, 300px";
     img.alt = p.name;
     img.width = p.id === "tmaxx" ? 600 : 800;
@@ -166,7 +172,8 @@
           it.qty > 0 &&
           it.qty <= 99 &&
           getProduct(it.id) &&
-          !isSoldOut(getProduct(it.id));
+          !isSoldOut(getProduct(it.id)) &&
+          hasPrice(getProduct(it.id));
         if (valid) seen.add(it.id);
         return Boolean(valid);
       });
@@ -192,13 +199,13 @@
   function cartTotal() {
     return cart.reduce((sum, it) => {
       const p = getProduct(it.id);
-      return p ? sum + p.price * it.qty : sum;
+      return p && hasPrice(p) ? sum + p.price * it.qty : sum;
     }, 0);
   }
 
   function addToCart(id, qty) {
     const p = getProduct(id);
-    if (!p || isSoldOut(p)) return;
+    if (!p || isSoldOut(p) || !hasPrice(p)) return;
     const n = Math.max(1, Math.min(99, qty || 1));
     const existing = cart.find((it) => it.id === id);
     if (existing) {
@@ -536,16 +543,27 @@
     foot.className = "modal-foot";
     const price = document.createElement("div");
     price.className = "prod-price";
-    const small = document.createElement("small");
-    small.textContent = "USD";
-    price.appendChild(small);
-    price.appendChild(document.createTextNode(formatUSD(p.price)));
-    const btn = document.createElement("button");
+    if (hasPrice(p)) {
+      const small = document.createElement("small");
+      small.textContent = "USD";
+      price.appendChild(small);
+      price.appendChild(document.createTextNode(formatUSD(p.price)));
+    } else {
+      price.textContent = "Consultar precio";
+    }
+    const btn = document.createElement(hasPrice(p) ? "button" : "a");
     btn.className = "btn btn-ink btn-sm";
-    btn.type = "button";
-    btn.textContent = soldOut ? "Agotado" : "Agregar al carrito";
-    btn.disabled = soldOut;
-    if (!soldOut) {
+    if (hasPrice(p)) {
+      btn.type = "button";
+      btn.textContent = soldOut ? "Agotado" : "Agregar al carrito";
+      btn.disabled = soldOut;
+    } else {
+      btn.href = waLink("Hola, quisiera cotizar el producto " + p.name + ".");
+      btn.target = "_blank";
+      btn.rel = "noopener noreferrer";
+      btn.textContent = "Consultar por WhatsApp";
+    }
+    if (!soldOut && hasPrice(p)) {
       btn.addEventListener("click", () => {
         addToCart(p.id, 1);
         const returnTarget = modalReturnFocus;
@@ -642,19 +660,28 @@
     foot.className = dark ? "tile-foot" : "prod-foot";
     const price = document.createElement("div");
     price.className = dark ? "tile-price" : "prod-price";
-    const small = document.createElement("small");
-    small.textContent = "USD";
-    price.appendChild(small);
-    price.appendChild(document.createTextNode(formatUSD(p.price)));
+    if (hasPrice(p)) {
+      const small = document.createElement("small");
+      small.textContent = "USD";
+      price.appendChild(small);
+      price.appendChild(document.createTextNode(formatUSD(p.price)));
+    } else {
+      price.textContent = "Consultar precio";
+    }
 
     const add = document.createElement("button");
     add.className = "add-btn";
     add.type = "button";
-    add.dataset.add = p.id;
-    add.disabled = soldOut;
-    add.innerHTML = soldOut
-      ? "Agotado"
-      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg> Agregar`;
+    if (hasPrice(p)) {
+      add.dataset.add = p.id;
+      add.disabled = soldOut;
+      add.innerHTML = soldOut
+        ? "Agotado"
+        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg> Agregar`;
+    } else {
+      add.dataset.detail = p.id;
+      add.textContent = "Consultar precio";
+    }
 
     foot.append(price, add);
     if (code) body.append(cat, code, name, foot);
