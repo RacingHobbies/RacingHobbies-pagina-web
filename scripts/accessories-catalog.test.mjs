@@ -67,6 +67,24 @@ test('los accesorios tienen los precios confirmados por la tienda', () => {
   });
 });
 
+test('las nuevas radios FlySky incluyen una lámina adicional en su galería', () => {
+  const { products } = catalogData();
+  const expectedGalleries = {
+    'flysky-fs-g7p-plus': ['assets/img/flysky-fs-g7p-plus-specs.png'],
+    'flysky-fs-gt3c': ['assets/img/flysky-fs-gt3c-specs.png'],
+    'flysky-fs-gt3b': ['assets/img/flysky-fs-gt3b-specs.png'],
+  };
+  const actualGalleries = Object.fromEntries(
+    Array.from(products)
+      .filter((product) => product.id in expectedGalleries)
+      .map((product) => [product.id, Array.from(product.gallery || [])]),
+  );
+  assert.deepEqual(actualGalleries, expectedGalleries);
+  Object.values(expectedGalleries).flat().forEach((asset) => {
+    assert.ok(fs.existsSync(path.join(root, asset)), asset);
+  });
+});
+
 test('ordenar por precio deja las consultas después de los productos con precio', () => {
   const source = read('js/catalog.js');
   assert.match(source, /function comparePrice\(a, b, direction\)/);

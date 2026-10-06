@@ -118,16 +118,24 @@
     return "https://wa.me/" + phone + "?text=" + encodeURIComponent(String(message).slice(0, 4000));
   }
 
-  function safeProductAsset(value) {
+  function isProductAsset(value) {
     const asset = String(value || "");
-    return /^assets\/img\/[a-z0-9][a-z0-9/_-]*\.(?:webp|jpe?g|png)$/i.test(asset)
-      ? asset
-      : "assets/img/logo-mark-180.webp";
+    return /^assets\/img\/[a-z0-9][a-z0-9/_-]*\.(?:webp|jpe?g|png)$/i.test(asset);
   }
 
-  function productImg(p) {
+  function safeProductAsset(value) {
+    return isProductAsset(value) ? String(value) : "assets/img/logo-mark-180.webp";
+  }
+
+  function productGalleryAssets(p) {
+    const candidates = [p.img].concat(Array.isArray(p.gallery) ? p.gallery : []);
+    const assets = candidates.filter(isProductAsset);
+    return assets.length > 0 ? Array.from(new Set(assets)) : ["assets/img/logo-mark-180.webp"];
+  }
+
+  function productImg(p, source) {
     const img = document.createElement("img");
-    const asset = safeProductAsset(p.img);
+    const asset = safeProductAsset(source || p.img);
     img.src = asset;
     if (/\.webp$/i.test(asset)) {
       img.srcset =
@@ -514,7 +522,42 @@
 
     const media = $("#rh-modal-media");
     media.textContent = "";
-    media.appendChild(productImg(p));
+    const galleryAssets = productGalleryAssets(p);
+    if (galleryAssets.length === 1) {
+      media.appendChild(productImg(p));
+    } else {
+      const gallery = document.createElement("div");
+      gallery.className = "modal-gallery";
+      const visual = document.createElement("div");
+      visual.className = "modal-gallery-main";
+      const thumbs = document.createElement("div");
+      thumbs.className = "modal-gallery-thumbs";
+      const thumbButtons = [];
+
+      const selectImage = (index) => {
+        visual.textContent = "";
+        visual.appendChild(productImg(p, galleryAssets[index]));
+        thumbButtons.forEach((button, buttonIndex) => {
+          button.setAttribute("aria-pressed", String(buttonIndex === index));
+        });
+      };
+
+      galleryAssets.forEach((asset, index) => {
+        const thumb = document.createElement("button");
+        thumb.className = "modal-gallery-thumb";
+        thumb.type = "button";
+        thumb.setAttribute("aria-label", "Ver imagen " + (index + 1) + " de " + p.name);
+        thumb.setAttribute("aria-pressed", "false");
+        thumb.appendChild(productImg(p, asset));
+        thumb.addEventListener("click", () => selectImage(index));
+        thumbButtons.push(thumb);
+        thumbs.appendChild(thumb);
+      });
+
+      gallery.append(visual, thumbs);
+      media.appendChild(gallery);
+      selectImage(0);
+    }
 
     const body = $("#rh-modal-body");
     body.textContent = "";
