@@ -39,6 +39,27 @@ test('el catálogo incluye cargadores SkyRC y radios FlySky en categorías propi
   });
 });
 
+test('los accesorios tienen los precios confirmados por la tienda', () => {
+  const { products } = catalogData();
+  const prices = Object.fromEntries(
+    Array.from(products)
+      .filter((product) => [
+        'skyrc-d260', 'skyrc-t120-pico', 'skyrc-s65', 'skyrc-e450',
+        'skyrc-en18', 'flysky-fs-g11p', 'flysky-noble-nb4-pro',
+      ].includes(product.id))
+      .map((product) => [product.id, product.price]),
+  );
+  assert.deepEqual(prices, {
+    'skyrc-d260': 270,
+    'skyrc-t120-pico': 130,
+    'skyrc-s65': 85,
+    'skyrc-e450': 60,
+    'skyrc-en18': 35,
+    'flysky-fs-g11p': 350,
+    'flysky-noble-nb4-pro': 850,
+  });
+});
+
 test('ordenar por precio deja las consultas después de los productos con precio', () => {
   const source = read('js/catalog.js');
   assert.match(source, /function comparePrice\(a, b, direction\)/);
