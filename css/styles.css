@@ -20328,8 +20328,8 @@ html.js body main .race-sector.atmo-on > .race-art {
 }
 
 .consent-banner-actions .btn {
-  min-height: 38px;
-  padding: 8px 13px;
+  min-height: 38px !important;
+  padding: 8px 14px !important;
   font-size: 0.74rem;
   white-space: nowrap;
 }
@@ -20822,20 +20822,56 @@ html.rh-motion-ready .rh-internal-item.rh-in {
 
 @media (max-width: 680px) {
   .consent-banner {
-    right: 12px;
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
     top: calc(var(--header-h) + 12px);
     bottom: auto;
-    width: calc(100vw - 24px);
+    width: auto;
     max-width: none;
+    max-height: calc(100dvh - var(--header-h) - 24px);
+    overflow-y: auto;
     border-radius: 16px;
+    box-sizing: border-box;
+  }
+
+  .consent-banner-copy strong {
+    font-size: 0.84rem;
+  }
+
+  .consent-banner-copy p {
+    font-size: 0.8rem;
+    line-height: 1.45;
+    overflow-wrap: break-word;
   }
 
   .consent-banner-actions {
-    gap: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+    align-items: center;
   }
 
   .consent-banner-actions .btn {
-    flex: 1 1 130px;
+    width: 100%;
+    min-height: 42px !important;
+    padding: 0 10px !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.05em !important;
+    white-space: nowrap !important;
+  }
+
+  .consent-banner-actions > a {
+    grid-column: 1 / -1;
+    text-align: center;
+    margin-top: 2px;
+    font-size: 0.76rem;
+  }
+}
+
+@media (max-width: 350px) {
+  .consent-banner-actions {
+    grid-template-columns: 1fr;
   }
 }
 
