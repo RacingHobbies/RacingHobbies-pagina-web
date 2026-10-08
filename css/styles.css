@@ -1066,6 +1066,27 @@ body:not(.page-home) .sec-dark,
   filter: brightness(0.7) !important;
 }
 
+/* En productos agotados con recorte transparente, el panel blanco y el contenedor
+   se oscurecen en la misma proporción (0.7) que el lienzo de las fotos para
+   asegurar un oscurecimiento uniforme e idéntico en todo el catálogo. */
+.is-sold-out .prod-media[data-image-surface="cutout"]::before,
+.is-sold-out .tile-media[data-image-surface="cutout"]::before,
+.is-sold-out:hover .prod-media[data-image-surface="cutout"]::before,
+.is-sold-out:hover .tile-media[data-image-surface="cutout"]::before,
+.is-sold-out:focus-within .prod-media[data-image-surface="cutout"]::before,
+.is-sold-out:focus-within .tile-media[data-image-surface="cutout"]::before {
+  filter: brightness(0.7) !important;
+}
+
+.is-sold-out .prod-media[data-image-surface="cutout"],
+.is-sold-out .tile-media[data-image-surface="cutout"],
+.is-sold-out:hover .prod-media[data-image-surface="cutout"],
+.is-sold-out:hover .tile-media[data-image-surface="cutout"],
+.is-sold-out:focus-within .prod-media[data-image-surface="cutout"],
+.is-sold-out:focus-within .tile-media[data-image-surface="cutout"] {
+  background: #a7a9ad !important;
+}
+
 .feature-visual.is-sold-out {
   position: relative;
 }
@@ -20382,6 +20403,7 @@ html.js body main .race-sector.atmo-on > .race-art {
   pointer-events: none;
   border-radius: inherit;
   background: rgba(0, 0, 0, 0.36);
+  opacity: 1 !important;
 }
 
 .is-sold-out .sold-out-watermark {
@@ -20479,6 +20501,19 @@ html.lando-anim [data-lando-htrack] > .rh-hcard
   width: 82% !important;
   height: 82% !important;
   flex: 0 0 auto !important;
+}
+
+/* Recortes transparentes en productos agotados: el panel blanco y el contenedor
+   se oscurecen en la misma proporción (0.7) que el lienzo de las fotos para
+   mantener un tratamiento visual uniforme e idéntico en todo el catálogo. */
+.is-sold-out .tile-media[data-image-surface="cutout"]::before,
+.is-sold-out .prod-media[data-image-surface="cutout"]::before {
+  filter: brightness(0.7) !important;
+}
+
+.is-sold-out .tile-media[data-image-surface="cutout"],
+.is-sold-out .prod-media[data-image-surface="cutout"] {
+  background: #a7a9ad !important;
 }
 
 /* ===========================================================================
@@ -20622,12 +20657,20 @@ select {
   will-change: transform;
 }
 
-.prod-card::after,
-.tile::after,
-.collage-item::after,
+.prod-card:not(.is-sold-out)::after,
+.tile:not(.is-sold-out)::after,
+.collage-item:not(.is-sold-out)::after,
 .deck-card::after {
   opacity: 0;
   transition: opacity var(--rh-motion-base) var(--rh-ease-out);
+}
+
+.prod-card.is-sold-out::after,
+.tile.is-sold-out::after,
+.feature-visual.is-sold-out::after,
+.collage-item.is-sold-out::after,
+.is-sold-out::after {
+  opacity: 1 !important;
 }
 
 .prod-card:hover,

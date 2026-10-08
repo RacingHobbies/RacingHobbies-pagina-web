@@ -51,4 +51,27 @@ test('el oscurecido ocupa la ficha completa y no sólo los píxeles de la foto',
   );
   assert.match(styles, /\.is-sold-out::after\s*\{[\s\S]*?inset:\s*0;[\s\S]*?pointer-events:\s*none;/);
   assert.match(styles, /\.is-sold-out \.sold-out-watermark\s*\{[\s\S]*?z-index:\s*\d+/);
+  assert.match(styles, /\.prod-card\.is-sold-out::after[\s\S]*?opacity:\s*1\s*!important/);
 });
+
+test('los recortes transparentes agotados oscurecen su panel y fondo en igual proporción', () => {
+  const styles = read('css/styles.css');
+
+  assert.match(
+    styles,
+    /\.is-sold-out\s+\.prod-media\[data-image-surface="cutout"\]::before[\s\S]*?brightness\(0\.7\)/
+  );
+  assert.match(
+    styles,
+    /\.is-sold-out\s+\.tile-media\[data-image-surface="cutout"\]::before[\s\S]*?brightness\(0\.7\)/
+  );
+  assert.match(
+    styles,
+    /\.is-sold-out\s+\.prod-media\[data-image-surface="cutout"\][\s\S]*?background:\s*#a7a9ad/
+  );
+  assert.match(
+    styles,
+    /\.is-sold-out\s+\.tile-media\[data-image-surface="cutout"\][\s\S]*?background:\s*#a7a9ad/
+  );
+});
+
