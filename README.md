@@ -93,6 +93,9 @@ documentación del repositorio.
 | `scripts/security-audit.sh` | Auditoría local de regresión de CSP, cabeceras, scripts y enlaces |
 | `scripts/verify-production-security.sh` | Verifica cabeceras y contenido del dominio publicado |
 | `SECURITY.md` | Runbook de publicación y verificación de seguridad |
+| `AGENTS.md` | Estándares obligatorios y directrices para agentes de IA |
+| `CONTRIBUTING.md` | Guía de contribución, flujo de trabajo y buenas prácticas |
+| `.github/STYLE_GUIDE.md` | Sistema de diseño, componentes, paleta y guía de estilo detallada |
 | `nginx-security-headers.conf.example` | Cabeceras listas para Nginx/OpenResty |
 | `.htaccess` | HTTPS, cabeceras, 404 y bloqueo de archivos sensibles para Apache/cPanel |
 | `VENDOR-SHA256SUMS` | Huellas SHA-256 de los bundles de terceros y del guardia anti-clickjacking |
