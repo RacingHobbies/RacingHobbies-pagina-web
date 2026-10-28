@@ -171,5 +171,12 @@
     if (phone) api.phoneClick(phone.dataset.analyticsLocation);
   });
 
-  document.addEventListener("DOMContentLoaded", () => api.pageView(), { once: true });
+  document.addEventListener("DOMContentLoaded", () => {
+    api.pageView();
+    const productId = document.querySelector?.("[data-product-id]")?.dataset.productId;
+    if (productId && typeof RH_PRODUCTS !== "undefined") {
+      const product = RH_PRODUCTS.find(item => item.id === productId);
+      if (product) api.viewItem(product);
+    }
+  }, { once: true });
 })();

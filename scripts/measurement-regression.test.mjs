@@ -102,6 +102,24 @@ test('las búsquedas con apariencia de correo o teléfono no salen al dataLayer'
   assert.equal(searches[0].search_term, 'motor crawler');
 });
 
+test('una ficha permanente registra la vista del producto real una sola vez', () => {
+  const listeners = {};
+  const product = { id: 'crawler-real', name: 'Crawler real', cat: 'crawlers', price: 710 };
+  const window = { dataLayer: [], location: { origin: 'https://racinghobbies.net', pathname: '/productos/crawler-real' } };
+  const document = {
+    title: 'Crawler real en Ecuador',
+    addEventListener(type, handler) { listeners[type] = handler; },
+    querySelector() { return { dataset: { productId: product.id } }; },
+  };
+  vm.runInNewContext(read('js/analytics.js'), { window, document, RH_PRODUCTS: [product], console });
+  listeners.DOMContentLoaded();
+  const events = window.dataLayer.filter(item => item.event);
+  assert.deepEqual(events.map(item => item.event), ['page_view', 'view_item']);
+  assert.equal(events[1].items[0].item_id, product.id);
+  assert.equal(events[1].value, 710);
+  assert.equal(events[1].page_location, 'https://racinghobbies.net/productos/crawler-real');
+});
+
 test('GTM sólo se carga después de aceptar la medición', () => {
   const source = read('js/gtm-loader.js');
   assert.match(source, /RH_CONSENT\.get\(\) !== ['"]granted['"]/);

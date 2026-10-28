@@ -167,6 +167,28 @@ genera un mensaje con el detalle del pedido y el total hacia el número
 configurado; pago y entrega se coordinan por chat (retiro en local o envío
 por Servientrega).
 
+## Catálogo rastreable y fichas de producto
+
+El paquete de publicación genera automáticamente las URLs permanentes
+`/productos/<id>` y `/categorias/<slug>` con el inventario de `js/data.js`.
+Incluye el catálogo completo en HTML antes de JavaScript, enlaces entre
+categorías y fichas, títulos y canónicas propios, microdatos `Product`,
+`Offer` (solo con precio real), `BreadcrumbList` y el sitemap ampliado.
+Los productos agotados conservan su ficha y se marcan `OutOfStock`.
+Los precios sin confirmar no se convierten en ofertas de cero dólares.
+
+`scripts/seo-pages.mjs` produce estas páginas durante el empaquetado, sin
+dependencias adicionales ni archivos de inventario duplicados. Publicar
+siempre la salida de `scripts/package-cloudflare.sh` o
+`scripts/package-production.sh`; copiar solamente los HTML fuente omitiría
+las fichas. Para comprobar el resultado local, sirve `.cloudflare-pages/`.
+
+Prueba específica: `node --test scripts/seo-pages.test.mjs`. La validación
+de SRI del empaquetador también cubre las páginas generadas. Cambiar precios,
+disponibilidad o especificaciones requiere regenerar los bundles y el paquete,
+como cualquier actualización del catálogo. Google decide qué URLs rastrea,
+indexa y muestra; este cambio no garantiza posiciones ni resultados enriquecidos.
+
 ## Medición y atribución
 
 `js/analytics.js` centraliza los eventos compatibles con GA4/GTM: vistas de

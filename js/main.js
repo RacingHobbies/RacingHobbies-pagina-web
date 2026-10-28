@@ -693,9 +693,9 @@
 
     const name = document.createElement("h3");
     name.className = dark ? "tile-name" : "prod-name";
-    const nameBtn = document.createElement("button");
-    nameBtn.type = "button";
-    nameBtn.dataset.detail = p.id;
+    const nameBtn = document.createElement("a");
+    nameBtn.href = "/productos/" + p.id;
+    nameBtn.dataset.productPage = p.id;
     nameBtn.textContent = p.name;
     name.appendChild(nameBtn);
 
@@ -2285,6 +2285,9 @@
         return;
       }
 
+      // El nombre del producto abre su URL permanente; la imagen conserva
+      // la ficha rápida. Google y los visitantes pueden seguir el enlace.
+      if (t.closest("a[data-product-page]")) return;
       const detailBtn = t.closest("[data-detail]");
       if (detailBtn) {
         openProductModal(detailBtn.dataset.detail);
