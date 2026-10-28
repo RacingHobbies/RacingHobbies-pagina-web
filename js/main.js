@@ -120,11 +120,13 @@
 
   function isProductAsset(value) {
     const asset = String(value || "");
-    return /^assets\/img\/[a-z0-9][a-z0-9/_-]*\.(?:webp|jpe?g|png)$/i.test(asset);
+    return /^\/?assets\/img\/[a-z0-9][a-z0-9/_-]*\.(?:webp|jpe?g|png)$/i.test(asset);
   }
 
   function safeProductAsset(value) {
-    return isProductAsset(value) ? String(value) : "assets/img/logo-mark-180.webp";
+    // Las fichas están bajo /productos/: las imágenes del carrito y del
+    // modal deben resolverse desde la raíz también en rutas anidadas.
+    return isProductAsset(value) ? "/" + String(value).replace(/^\//, "") : "/assets/img/logo-mark-180.webp";
   }
 
   function productGalleryAssets(p) {
@@ -1846,10 +1848,10 @@
     // Previews editoriales: cada imagen representa la sección que activa.
     // Se mantienen en WebP reducido para que el panel siga abriendo rápido.
     const navShots = [
-    ["assets/img/menu-catalog.webp?v=4", "Selección de modelos RC de catálogo"],
-    ["assets/img/menu-service.webp?v=4", "Técnico ajustando el chasis de un auto RC"],
-    ["assets/img/menu-about.webp?v=8", "Rincón del taller de Racing Hobbies con autos RC y logo de la marca"],
-    ["assets/img/menu-contact.webp?v=4", "Cliente contactando a Racing Hobbies desde su teléfono"],
+    ["/assets/img/menu-catalog.webp?v=4", "Selección de modelos RC de catálogo"],
+    ["/assets/img/menu-service.webp?v=4", "Técnico ajustando el chasis de un auto RC"],
+    ["/assets/img/menu-about.webp?v=8", "Rincón del taller de Racing Hobbies con autos RC y logo de la marca"],
+    ["/assets/img/menu-contact.webp?v=4", "Cliente contactando a Racing Hobbies desde su teléfono"],
     ];
     navShots.forEach(([src, alt], index) => {
       const shot = document.createElement("div");
@@ -3918,7 +3920,7 @@
     routeCurtain.className = "rh-route-curtain";
     routeCurtain.setAttribute("aria-hidden", "true");
     routeCurtain.innerHTML =
-      '<span class="rh-route-mark"><img src="assets/img/logo-mark-360.webp?v=2" alt="" width="360" height="186"></span>' +
+      '<span class="rh-route-mark"><img src="/assets/img/logo-mark-360.webp?v=2" alt="" width="360" height="186"></span>' +
       '<span class="rh-route-label">Cargando</span>';
     document.body.appendChild(routeCurtain);
     document.body.classList.add("rh-route-enabled");

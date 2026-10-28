@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import { catalogData, generateSeoPages } from './seo-pages.mjs';
 
@@ -60,4 +61,18 @@ test('el sitemap no tiene filtros, duplicados ni URLs de prueba y la generación
   assert.equal(new Set(urls).size, urls.length);
   assert.ok(urls.every(url => url.startsWith('https://racinghobbies.net/') && !/[?#]/.test(url)));
   assert.deepEqual([...generateSeoPages(root)], [...pages]);
+});
+
+test('las imágenes dinámicas se resuelven desde rutas anidadas sin admitir URLs externas ni traversal', () => {
+  const source = fs.readFileSync(root + '/js/main.js', 'utf8');
+  const helpers = source.slice(source.indexOf('  function isProductAsset('), source.indexOf('  function productGalleryAssets('));
+  const context = vm.createContext({});
+  vm.runInContext(helpers, context);
+  for (const asset of ['assets/img/camel-defender.webp', '/assets/img/louis/LNBA205.webp']) {
+    const resolved = new URL(context.safeProductAsset(asset), 'https://racinghobbies.net/productos/camel-defender');
+    assert.equal(resolved.pathname, '/' + asset.replace(/^\//, ''));
+  }
+  for (const unsafe of ['https://example.test/a.png', '//example.test/a.png', 'assets/img/../../private.png']) {
+    assert.equal(context.safeProductAsset(unsafe), '/assets/img/logo-mark-180.webp');
+  }
 });
