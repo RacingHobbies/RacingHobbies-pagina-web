@@ -8,10 +8,12 @@
 
   const STORAGE_KEY = "rh-analytics-consent";
   const VALID_STATES = new Set(["granted", "rejected"]);
+  let sessionState;
 
   window.dataLayer = Array.isArray(window.dataLayer) ? window.dataLayer : [];
 
   function readState() {
+    if (sessionState !== undefined) return sessionState;
     try {
       const state = window.localStorage.getItem(STORAGE_KEY);
       return VALID_STATES.has(state) ? state : null;
@@ -62,6 +64,7 @@
 
   function setConsent(state) {
     if (!VALID_STATES.has(state)) return false;
+    sessionState = state;
     persist(state);
     if (state === "rejected") clearAnalyticsCookies();
     gtag("consent", "update", consentSettings(state));
@@ -71,6 +74,7 @@
   }
 
   function resetConsent() {
+    sessionState = null;
     try {
       window.localStorage.removeItem(STORAGE_KEY);
     } catch (error) {
@@ -80,6 +84,7 @@
     gtag("consent", "update", consentSettings("rejected"));
     removeBanner();
     renderBanner();
+    window.dispatchEvent(new window.CustomEvent("rh:consent", { detail: "rejected" }));
   }
 
   function renderBanner() {

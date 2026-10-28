@@ -24,6 +24,8 @@ function fixture(t) {
     put(name + '.html', '<script src="js/app.js?v=1" integrity="sha256-' + sri + '"></script>');
   }
   for (const name of ['js/app.js', 'css/app.css', 'assets/image.png', '.well-known/security.txt', '.htaccess', '_headers', '_redirects', '.nojekyll', 'robots.txt', 'sitemap.xml', 'site.webmanifest']) put(name);
+  put('js/data.js', 'const RH_PRODUCTS = []; const RH_CATEGORIES = [];');
+  put('css/seo.css', '/* fixture */');
   return { root, put };
 }
 

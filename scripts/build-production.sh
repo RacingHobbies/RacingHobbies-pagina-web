@@ -9,7 +9,9 @@ cd "$PROJECT_DIR"
 LIGHTNINGCSS_VERSION="1.33.0"
 TERSER_VERSION="5.49.0"
 
-npx --yes "lightningcss-cli@${LIGHTNINGCSS_VERSION}" --minify css/styles.css -o css/styles.min.css
+for source in styles typography community-fix home-responsive format-parity cta-cards; do
+  npx --yes "lightningcss-cli@${LIGHTNINGCSS_VERSION}" --minify "css/${source}.css" -o "css/${source}.min.css"
+done
 
 for source in config data main catalog contact analytics consent gtm-loader frame-guard; do
   npx --yes "terser@${TERSER_VERSION}" "js/${source}.js" \
