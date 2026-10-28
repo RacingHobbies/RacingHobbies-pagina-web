@@ -1673,7 +1673,7 @@
     const match = /url\(\s*["']?([^"')]+)["']?\s*\)/.exec(raw.trim());
     if (!match) return "";
     try {
-      return new URL(match[1], new URL("css/", document.baseURI)).href;
+      return new URL(match[1], new URL("/css/", document.baseURI)).href;
     } catch {
       return "";
     }

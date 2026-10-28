@@ -197,20 +197,40 @@ WhatsApp, llamadas y envío de formulario. La capa conserva ecommerce real,
 omite datos personales y mantiene los cinco parámetros UTM estándar al aplicar
 filtros del catálogo.
 
-La medición activa usa el contenedor autorizado `GTM-PHWK4J3L` y la propiedad
-GA4 `G-15799391904`, enlazados mediante `js/gtm-loader.js`. El consentimiento
-de analítica se deniega por defecto con Consent Mode; GTM y el cliente oficial
-de GA4 no se descargan hasta una aceptación explícita y solo entonces se
-habilita el envío. La etiqueta de Google publicada en GTM genera una sola
-`page_view`; los eventos de negocio se envían desde el cliente oficial usando
-la misma capa `dataLayer`, sin una segunda etiqueta de evento que los duplique.
-El contenedor recibe únicamente los eventos y parámetros documentados en la
-capa, sin nombres, teléfonos, correos, mensajes ni contenido del pedido.
+La etiqueta usa el ID de medición `G-JB588FWM54`, verificado en el flujo web
+de la propiedad **Racing Hobbies Ecuador**. `15799391904` es
+el ID numérico del flujo; anteponerle `G-` no produce un ID de medición válido.
+`js/gtm-loader.js` conserva su nombre histórico, pero carga únicamente el
+cliente oficial de GA4. No carga además el contenedor GTM que publicaba la
+etiqueta incorrecta.
+
+El consentimiento se deniega por defecto y el cliente no se descarga hasta
+aceptar, únicamente en los hosts de producción. La capa envía una `page_view`
+manual por documento y la vista inicial de producto también cuando se acepta
+el banner después de cargar la página. No reenvía compras ni acciones previas
+al consentimiento. La retirada deshabilita el cliente y bloquea los eventos
+manuales. La elección se conserva durante la visita aunque el navegador
+bloquee el almacenamiento local.
+
+La URL de página y el referente omiten consultas y fragmentos; solo se
+conservan parámetros de campaña UTM permitidos, sin correos ni teléfonos.
+Las vistas de prueba y localhost no cargan Google. Los clics, búsquedas,
+formularios y ecommerce usan los eventos explícitos de `js/analytics.js`;
+Antes de publicar esta corrección, desactiva en la medición mejorada del flujo
+los clics salientes, las búsquedas, las interacciones con formularios y las
+vistas por cambios de historial. Evita duplicar los eventos explícitos y
+recoger texto incluido en enlaces de WhatsApp. La recepción real debe
+verificarse en Analytics después de publicar y aceptar la medición.
+
+Las hojas auxiliares de estilo también se minifican durante el build; se
+mantienen sus fuentes y su orden de carga. La portada pasa de 188.719 a
+83.478 bytes de CSS auxiliar antes de compresión HTTP. Consentimiento y
+etiqueta se cargan con `defer`, respetando el orden previo a la capa de eventos.
 
 ## Seguridad
 
 - Código, fuentes e imágenes son locales; la única carga externa de producción
-  es Google Tag Manager, habilitada por consentimiento y restringida en CSP.
+  es la etiqueta de Google Analytics, habilitada por consentimiento y restringida en CSP.
 - `Content-Security-Policy` estricta en cada página; sin estilos ni scripts
   inline ejecutables; los dos bloques JSON-LD están autorizados mediante hash,
   sin abrir `unsafe-inline`; los atributos de evento inline están bloqueados.

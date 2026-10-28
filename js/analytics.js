@@ -1,7 +1,7 @@
 /* ========================================================================
    Racing Hobbies — capa de medición
    Data layer compatible con GA4/GTM, sin dependencias externas ni PII.
-   GTM y Google tag deciden el envío a GA4 según el consentimiento guardado por el visitante.
+   La etiqueta de Google envía a GA4 según el consentimiento guardado por el visitante.
    ======================================================================== */
 
 (function () {
@@ -24,7 +24,9 @@
   ]);
 
   window.dataLayer = Array.isArray(window.dataLayer) ? window.dataLayer : [];
+  let pageViewLogged = false;
   let pageViewSent = false;
+  let initialProductTracked = false;
 
   function clean(value, limit) {
     const result = String(value == null ? "" : value).trim();
@@ -45,7 +47,7 @@
 
   function cleanItem(product, quantity) {
     if (!product || !product.id || !product.name) return null;
-    const price = Number(product.price);
+    const price = product.price == null ? NaN : Number(product.price);
     const item = {
       item_id: clean(product.id, 80),
       item_name: clean(product.name, MAX),
@@ -59,6 +61,15 @@
     return Object.fromEntries(Object.entries(item).filter(([, value]) => value !== undefined));
   }
 
+  function transmit(name, params) {
+    if (window.RH_CONSENT?.get() !== "granted" || typeof window.gtag !== "function") return;
+    if (name === "page_view") {
+      if (pageViewSent) return;
+      pageViewSent = true;
+    }
+    window.gtag("event", name, params);
+  }
+
   function push(name, params) {
     if (!EVENT_NAMES.has(name)) return;
     const payload = {
@@ -67,10 +78,8 @@
       ...params,
     };
     window.dataLayer.push(payload);
-    if (name !== "page_view" && window.RH_CONSENT?.get() === "granted" && typeof window.gtag === "function") {
-      const { event: ignoredEvent, ...eventParams } = payload;
-      window.gtag("event", name, eventParams);
-    }
+    const { event: ignoredEvent, ...eventParams } = payload;
+    transmit(name, eventParams);
   }
 
   function itemsFrom(products) {
@@ -82,9 +91,15 @@
   const api = {
     push,
     pageView() {
-      if (pageViewSent) return;
-      pageViewSent = true;
-      push("page_view", { page_title: clean(document.title, 160) });
+      const params = { page_title: clean(document.title, 160) };
+      if (!pageViewLogged) {
+        pageViewLogged = true;
+        push("page_view", params);
+      } else {
+        // Aceptar el banner después de cargar la página registra la visita
+        // actual una sola vez; no reenvía acciones anteriores al consentimiento.
+        transmit("page_view", { page_location: pageLocation(), ...params });
+      }
     },
     viewItemList(name, products) {
       push("view_item_list", {
@@ -103,7 +118,11 @@
     viewItem(product) {
       const item = cleanItem(product);
       if (!item) return;
-      push("view_item", { currency: "USD", value: item.price || 0, items: [item] });
+      push("view_item", {
+        currency: "USD",
+        ...(item.price === undefined ? {} : { value: item.price }),
+        items: [item],
+      });
     },
     addToCart(product, quantity) {
       const item = cleanItem(product, quantity);
@@ -171,12 +190,21 @@
     if (phone) api.phoneClick(phone.dataset.analyticsLocation);
   });
 
-  document.addEventListener("DOMContentLoaded", () => {
+  function trackInitialPage() {
     api.pageView();
+    if (initialProductTracked || window.RH_CONSENT?.get() !== "granted") return;
     const productId = document.querySelector?.("[data-product-id]")?.dataset.productId;
     if (productId && typeof RH_PRODUCTS !== "undefined") {
       const product = RH_PRODUCTS.find(item => item.id === productId);
-      if (product) api.viewItem(product);
+      if (product) {
+        initialProductTracked = true;
+        api.viewItem(product);
+      }
     }
-  }, { once: true });
+  }
+
+  document.addEventListener("DOMContentLoaded", trackInitialPage, { once: true });
+  window.addEventListener?.("rh:consent", event => {
+    if (event.detail === "granted" && document.readyState !== "loading") trackInitialPage();
+  });
 })();

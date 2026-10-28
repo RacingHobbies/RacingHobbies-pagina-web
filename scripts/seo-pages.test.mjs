@@ -76,3 +76,15 @@ test('las imágenes dinámicas se resuelven desde rutas anidadas sin admitir URL
     assert.equal(context.safeProductAsset(unsafe), '/assets/img/logo-mark-180.webp');
   }
 });
+
+test('el arte de secciones se resuelve desde la carpeta CSS también dentro de productos', () => {
+  const source = fs.readFileSync(root + '/js/main.js', 'utf8');
+  const helper = source.slice(source.indexOf('  function sectorArtURL('), source.indexOf('  function initAtmosphereLoading('));
+  const context = vm.createContext({
+    URL,
+    document: { baseURI: 'https://racinghobbies.net/productos/camel-defender' },
+    getComputedStyle() { return { getPropertyValue() { return 'url("../assets/img/menu-catalog.webp")'; } }; },
+  });
+  vm.runInContext(helper, context);
+  assert.equal(context.sectorArtURL({}), 'https://racinghobbies.net/assets/img/menu-catalog.webp');
+});

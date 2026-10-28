@@ -82,9 +82,9 @@ test('los iconos de ubicación terminan antes de la pausa sin perder su orden', 
 });
 
 test('las páginas publicadas solicitan la versión ligada al contenido de la corrección móvil', () => {
-  const version = cacheVersion('css/format-parity.css');
+  const version = cacheVersion('css/format-parity.min.css');
   pages.forEach((page) => {
     const source = fs.readFileSync(path.join(project, page), 'utf8');
-    assert.match(source, new RegExp(`format-parity\\.css\\?v=${version}`), page);
+    assert.match(source, new RegExp(`format-parity\\.min\\.css\\?v=${version}`), page);
   });
 });
