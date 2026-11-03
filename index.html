@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://www.googletagmanager.com 'sha256-RQ8fIDi3JAx/aF6T2sDLFz0iDfoH0ohnLweEhQwaVlQ=' 'sha256-4/aSMV7oKqkCjMgPFzgdNootKdzBeaotMKbjUqY0s/M='; script-src-elem 'self' https://www.googletagmanager.com 'sha256-RQ8fIDi3JAx/aF6T2sDLFz0iDfoH0ohnLweEhQwaVlQ=' 'sha256-4/aSMV7oKqkCjMgPFzgdNootKdzBeaotMKbjUqY0s/M='; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self'; font-src 'self'; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com; manifest-src 'self'; media-src 'self'; frame-src https://www.google.com; form-action 'self'; upgrade-insecure-requests">
+        content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://www.googletagmanager.com 'sha256-VInb/UQahG/zpKTBo8BCjNJYLrLmEGtKcwkaDgDP7TQ=' 'sha256-4/aSMV7oKqkCjMgPFzgdNootKdzBeaotMKbjUqY0s/M='; script-src-elem 'self' https://www.googletagmanager.com 'sha256-VInb/UQahG/zpKTBo8BCjNJYLrLmEGtKcwkaDgDP7TQ=' 'sha256-4/aSMV7oKqkCjMgPFzgdNootKdzBeaotMKbjUqY0s/M='; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self'; font-src 'self'; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com; manifest-src 'self'; media-src 'self'; frame-src https://www.google.com; form-action 'self'; upgrade-insecure-requests">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="google-site-verification" content="ZOFZaG3eflxhzeY_kbs07hIuzW3nqVHNTA-sfw0keUI">
   <script src="js/frame-guard.min.js?v=a267ea16d6122e00" integrity="sha256-omfqFtYSLgAsJEbmFHczRiUdMurlrdQToP6ZK1foFsg="></script>
@@ -13,6 +13,8 @@
   <meta name="description" content="Racing Hobbies Ecuador — Adrenalina a control remoto. Autos RC, crawlers, aviones y helicópteros, baterías, repuestos y servicio técnico especializado en Quito.">
   <meta name="theme-color" content="#000000">
   <meta name="color-scheme" content="dark">
+  <meta name="application-name" content="Racing Hobbies Ecuador">
+  <meta name="apple-mobile-web-app-title" content="Racing Hobbies Ecuador">
   <title>Racing Hobbies Ecuador — Adrenalina a Control Remoto</title>
   <link rel="canonical" href="https://racinghobbies.net/">
   <link rel="icon" href="assets/favicon.svg?v=2" type="image/svg+xml">
@@ -45,7 +47,11 @@
         "@id": "https://racinghobbies.net/#website",
         "url": "https://racinghobbies.net/",
         "name": "Racing Hobbies Ecuador",
-        "alternateName": "Racing Hobbies",
+        "alternateName": [
+          "Racing Hobbies",
+          "RH Ecuador",
+          "racinghobbies.net"
+        ],
         "inLanguage": "es-EC",
         "publisher": {
           "@id": "https://racinghobbies.net/#store"
@@ -76,29 +82,9 @@
           "https://www.facebook.com/profile.php?id=61578637936920"
         ],
         "openingHoursSpecification": [
-          {
-            "@type": "OpeningHoursSpecification",
-            "dayOfWeek": "Monday",
-            "opens": "10:00",
-            "closes": "14:00"
-          },
-          {
-            "@type": "OpeningHoursSpecification",
-            "dayOfWeek": [
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday"
-            ],
-            "opens": "09:30",
-            "closes": "18:30"
-          },
-          {
-            "@type": "OpeningHoursSpecification",
-            "dayOfWeek": "Saturday",
-            "opens": "09:30",
-            "closes": "16:30"
-          }
+          { "@type": "OpeningHoursSpecification", "dayOfWeek": "Monday", "opens": "10:00", "closes": "14:00" },
+          { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Tuesday", "Wednesday", "Thursday", "Friday"], "opens": "09:30", "closes": "18:30" },
+          { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "09:30", "closes": "16:30" }
         ]
       }
     ]
