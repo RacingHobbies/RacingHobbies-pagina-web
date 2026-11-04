@@ -20451,6 +20451,11 @@ html.lando-anim .page-home .editorial-garage
   display: block !important;
   pointer-events: none;
   background: #fff !important;
+  bottom: 74px !important;
+  width: auto !important;
+  max-width: 82% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
 }
 
 /* CONTRATO DE SUPERFICIE DE IMAGEN ----------------------------------------
