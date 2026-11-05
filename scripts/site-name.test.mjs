@@ -19,7 +19,10 @@ test('la portada identifica un solo sitio con el nombre de marca y la URL canón
   assert.equal(site.name, 'Racing Hobbies Ecuador');
   assert.equal(site.url, 'https://racinghobbies.net/');
   assert.equal(site['@id'], site.url + '#website');
-  assert.equal(site.alternateName, 'Racing Hobbies');
+  const alternates = Array.isArray(site.alternateName) ? site.alternateName : [site.alternateName];
+  assert.ok(alternates.includes('Racing Hobbies'));
+  assert.ok(alternates.includes('RH Ecuador'));
+  assert.ok(alternates.includes('racinghobbies.net'));
   assert.match(home, /<link rel="canonical" href="https:\/\/racinghobbies\.net\/">/);
   assert.match(home, /<meta property="og:site_name" content="Racing Hobbies Ecuador">/);
   assert.match(home, /<title>Racing Hobbies Ecuador/);
@@ -41,4 +44,41 @@ test('los datos del nombre del sitio están autorizados en ambas directivas CSP 
       for (const [policy] of policies) assert.ok(policy.includes(hash), file + ': ' + policy);
     }
   }
+});
+
+test('todas las páginas públicas declaran og:site_name y application-name consistentes', () => {
+  const pages = [
+    'index.html',
+    'catalogo.html',
+    'servicio-tecnico.html',
+    'nosotros.html',
+    'contacto.html',
+    'garantia.html',
+    'privacidad.html'
+  ];
+
+  for (const page of pages) {
+    const html = read(page);
+    assert.match(
+      html,
+      /<meta property="og:site_name" content="Racing Hobbies Ecuador">/,
+      `${page} debe declarar og:site_name = Racing Hobbies Ecuador`
+    );
+    assert.match(
+      html,
+      /<meta name="application-name" content="Racing Hobbies Ecuador">/,
+      `${page} debe declarar application-name = Racing Hobbies Ecuador`
+    );
+    assert.match(
+      html,
+      /<meta name="apple-mobile-web-app-title" content="Racing Hobbies Ecuador">/,
+      `${page} debe declarar apple-mobile-web-app-title = Racing Hobbies Ecuador`
+    );
+  }
+});
+
+test('el manifiesto web declara el nombre de sitio esperado', () => {
+  const manifest = JSON.parse(read('site.webmanifest'));
+  assert.equal(manifest.name, 'Racing Hobbies Ecuador');
+  assert.equal(manifest.short_name, 'Racing Hobbies');
 });
