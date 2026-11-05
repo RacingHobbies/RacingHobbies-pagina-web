@@ -63,6 +63,25 @@ test('el sitemap no tiene filtros, duplicados ni URLs de prueba y la generación
   assert.deepEqual([...generateSeoPages(root)], [...pages]);
 });
 
+test('las fichas comparten la foto del producto sin heredar formato o dimensiones del logo de marca', () => {
+  for (const product of products) {
+    const html = pages.get('productos/' + product.id + '.html');
+    const title = html.match(/<title>([^<]+)<\/title>/)[1];
+    for (const attribute of ['property="og:image"', 'name="twitter:image"']) {
+      assert.ok(html.includes(`<meta ${attribute} content="https://racinghobbies.net/${product.img}">`), product.id);
+    }
+    for (const attribute of ['property="og:image:alt"', 'name="twitter:image:alt"']) {
+      assert.ok(html.includes(`<meta ${attribute} content="${title}">`), product.id);
+    }
+    assert.doesNotMatch(html, /property="og:image:(?:type|width|height)"/, product.id);
+    assert.ok(html.includes('href="/assets/favicon.png"'), product.id);
+  }
+  const catalog = pages.get('catalogo.html');
+  assert.match(catalog, /property="og:image" content="https:\/\/racinghobbies\.net\/assets\/img\/racing-hobbies-ecuador-square\.png"/);
+  assert.match(catalog, /property="og:image:type" content="image\/png"/);
+  assert.match(catalog, /property="og:image:width" content="1024"/);
+});
+
 test('las imágenes dinámicas se resuelven desde rutas anidadas sin admitir URLs externas ni traversal', () => {
   const source = fs.readFileSync(root + '/js/main.js', 'utf8');
   const helpers = source.slice(source.indexOf('  function isProductAsset('), source.indexOf('  function productGalleryAssets('));

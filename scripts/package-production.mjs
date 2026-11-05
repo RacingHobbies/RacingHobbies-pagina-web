@@ -8,7 +8,7 @@ import { generateSeoPages } from './seo-pages.mjs';
 const pages = ['index.html', 'catalogo.html', 'contacto.html', 'nosotros.html',
   'servicio-tecnico.html', 'garantia.html', 'privacidad.html', '404.html'];
 const common = [...pages, '_headers', '_redirects', '.nojekyll',
-  'robots.txt', 'sitemap.xml', 'site.webmanifest', '.well-known/security.txt'];
+  'robots.txt', 'sitemap.xml', 'site.webmanifest', 'favicon.ico', '.well-known/security.txt'];
 const targets = {
   apache: { destination: '.release', fixed: [...common, '.htaccess'] },
   cloudflare: { destination: '.cloudflare-pages', fixed: common }

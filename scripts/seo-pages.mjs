@@ -67,8 +67,11 @@ export function generateSeoPages(root) {
       .replace(/ aria-current="page"/g, '')
       .replace('<body class="page-catalog">', '<body class="page-seo">')
       .replace('</head>', `  ${cssLink}\n</head>`);
+    // La imagen de producto sustituye al logo de marca, así que no hereda
+    // el formato PNG ni las dimensiones del logo cuadrado del catálogo.
     if (image) html = html.replace(/(<meta (?:property="og:image"|name="twitter:image") content=")[^"]*(")/g, `$1${origin}/${image}$2`)
-      .replace(/(<meta property="og:image:alt" content=")[^"]*(")/, (_, before, after) => before + escape(title) + after);
+      .replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*(")/g, (_, before, after) => before + escape(title) + after)
+      .replace(/\s*<meta property="og:image:(?:type|width|height)"[^>]*>/g, '');
     return html;
   }
   function crumbs(category, product) {
