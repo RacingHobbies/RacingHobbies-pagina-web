@@ -13,7 +13,7 @@ https://:version.:project.pages.dev/*
   X-Robots-Tag: noindex, nofollow
 
 /*
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://www.googletagmanager.com 'sha256-VInb/UQahG/zpKTBo8BCjNJYLrLmEGtKcwkaDgDP7TQ=' 'sha256-4/aSMV7oKqkCjMgPFzgdNootKdzBeaotMKbjUqY0s/M='; script-src-elem 'self' https://www.googletagmanager.com 'sha256-VInb/UQahG/zpKTBo8BCjNJYLrLmEGtKcwkaDgDP7TQ=' 'sha256-4/aSMV7oKqkCjMgPFzgdNootKdzBeaotMKbjUqY0s/M='; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self'; font-src 'self'; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com; manifest-src 'self'; media-src 'self'; worker-src 'self'; frame-src https://www.google.com; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://www.googletagmanager.com 'sha256-uijL61FiXJ50QdvqUVACZzSTwbXA4nowLqD7KeHMX68=' 'sha256-N2FS6MZ0JgCchCDwbdbdiaRPREK86qNUmIggugeF6Ks='; script-src-elem 'self' https://www.googletagmanager.com 'sha256-uijL61FiXJ50QdvqUVACZzSTwbXA4nowLqD7KeHMX68=' 'sha256-N2FS6MZ0JgCchCDwbdbdiaRPREK86qNUmIggugeF6Ks='; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self'; font-src 'self'; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com; manifest-src 'self'; media-src 'self'; worker-src 'self'; frame-src https://www.google.com; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
   Permissions-Policy: accelerometer=(), autoplay=(), bluetooth=(), browsing-topics=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), hid=(), idle-detection=(), interest-cohort=(), local-fonts=(), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), usb=(), xr-spatial-tracking=(), fullscreen=(self "https://www.google.com")
@@ -43,3 +43,19 @@ https://:version.:project.pages.dev/*
 
 /css/*
   Cache-Control: public, max-age=3600, must-revalidate
+
+# Iconos de marca con URL estable; permitir actualizaciones sin caché semanal.
+/assets/favicon.png
+  Cache-Control: public, max-age=86400, must-revalidate
+
+/favicon.ico
+  Cache-Control: public, max-age=86400, must-revalidate
+
+/assets/icon-192.png
+  Cache-Control: public, max-age=86400, must-revalidate
+
+/assets/icon-512.png
+  Cache-Control: public, max-age=86400, must-revalidate
+
+/assets/apple-touch-icon.png
+  Cache-Control: public, max-age=86400, must-revalidate

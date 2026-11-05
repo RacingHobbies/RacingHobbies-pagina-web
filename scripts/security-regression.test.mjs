@@ -23,7 +23,7 @@ function fixture(t) {
   for (const name of ['index', 'catalogo', 'contacto', 'nosotros', 'servicio-tecnico', 'garantia', 'privacidad', '404']) {
     put(name + '.html', '<script src="js/app.js?v=1" integrity="sha256-' + sri + '"></script>');
   }
-  for (const name of ['js/app.js', 'css/app.css', 'assets/image.png', '.well-known/security.txt', '.htaccess', '_headers', '_redirects', '.nojekyll', 'robots.txt', 'sitemap.xml', 'site.webmanifest']) put(name);
+  for (const name of ['js/app.js', 'css/app.css', 'assets/image.png', '.well-known/security.txt', '.htaccess', '_headers', '_redirects', '.nojekyll', 'robots.txt', 'sitemap.xml', 'site.webmanifest', 'favicon.ico']) put(name);
   return { root, put };
 }
 
