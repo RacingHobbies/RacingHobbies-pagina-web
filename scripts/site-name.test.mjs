@@ -21,8 +21,7 @@ test('la portada identifica un solo sitio con el nombre de marca y la URL canón
   assert.equal(site['@id'], site.url + '#website');
   const alternates = Array.isArray(site.alternateName) ? site.alternateName : [site.alternateName];
   assert.ok(alternates.includes('Racing Hobbies'));
-  assert.ok(alternates.includes('RH Ecuador'));
-  assert.ok(alternates.includes('racinghobbies.net'));
+  assert.ok(!alternates.includes('racinghobbies.net'), 'el dominio no debe proponerse como nombre alternativo de marca');
   assert.match(home, /<link rel="canonical" href="https:\/\/racinghobbies\.net\/">/);
   assert.match(home, /<meta property="og:site_name" content="Racing Hobbies Ecuador">/);
   assert.match(home, /<title>Racing Hobbies Ecuador/);
@@ -81,4 +80,31 @@ test('el manifiesto web declara el nombre de sitio esperado', () => {
   const manifest = JSON.parse(read('site.webmanifest'));
   assert.equal(manifest.name, 'Racing Hobbies Ecuador');
   assert.equal(manifest.short_name, 'Racing Hobbies');
+});
+
+// Un logo apaisado puede terminar con franjas al entrar en una miniatura
+// cuadrada; verificar los archivos reales y cada página que los declara.
+test('las vistas de Google usan imágenes cuadradas reales y un favicon PNG rastreable', () => {
+  const dimensions = file => {
+    const data = fs.readFileSync(new URL(file, root));
+    assert.equal(data.subarray(1, 4).toString(), 'PNG', file);
+    return [data.readUInt32BE(16), data.readUInt32BE(20)];
+  };
+  const logo = 'assets/img/racing-hobbies-ecuador-square.png';
+  assert.deepEqual(dimensions(logo), [1024, 1024]);
+  assert.deepEqual(dimensions('assets/favicon.png'), [96, 96]);
+  assert.deepEqual(dimensions('assets/apple-touch-icon.png'), [180, 180]);
+  for (const page of fs.readdirSync(root).filter(file => file.endsWith('.html'))) {
+    const html = read(page);
+    assert.match(html, /rel="icon" href="\/assets\/favicon\.png" type="image\/png" sizes="96x96"/, page);
+    assert.ok(!html.includes('assets/favicon.svg?v='), page);
+    if (page === '404.html') continue;
+    assert.ok(html.includes('property="og:image" content="https://racinghobbies.net/' + logo + '"'), page);
+    assert.ok(!html.includes('logo-oficial.png?v='), page);
+  }
+  const publisher = nodes.find(node => node['@type'] === 'Store');
+  const image = nodes.find(node => node['@id'] === publisher.logo['@id']);
+  assert.equal(image?.['@type'], 'ImageObject');
+  assert.equal(image?.contentUrl, 'https://racinghobbies.net/' + logo);
+  assert.equal(image?.width, image?.height);
 });
