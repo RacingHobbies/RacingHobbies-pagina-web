@@ -9,6 +9,24 @@ const root = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, '');
 const { products, categories } = catalogData(root);
 const pages = generateSeoPages(root);
 
+test('las fichas declaran las marcas identificadas en el catálogo y omiten las desconocidas', () => {
+  const brands = new Map(products.filter(product => product.brand).map(product => [product.id, product.brand]));
+  assert.equal(brands.get('camel-defender'), 'FMS');
+  assert.equal(brands.get('camel-discovery'), 'FMS');
+  assert.equal(brands.get('f4-phantom'), 'E-flite');
+  assert.equal(brands.get('ultra-stick'), 'Hangar 9');
+  assert.equal(brands.has('louis-lnba205'), false);
+  for (const product of products) {
+    const html = pages.get('productos/' + product.id + '.html');
+    if (product.brand) {
+      assert.ok(html.includes(`<span itemprop="brand" itemscope itemtype="https://schema.org/Brand"><span itemprop="name">${product.brand}</span></span>`), product.id);
+    } else {
+      assert.doesNotMatch(html, /itemprop="brand"/, product.id);
+    }
+    assert.doesNotMatch(html, /Otras marcas|https:\/\/schema.org\/InStock|itemprop="(?:gtin\d*|aggregateRating|review)"/, product.id);
+  }
+});
+
 test('cada producto tiene contenido HTML, URL canónica y enlaces sin ejecutar JavaScript', () => {
   const catalog = pages.get('catalogo.html');
   const sitemap = pages.get('sitemap.xml');
