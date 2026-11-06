@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const source = fs.readFileSync(path.join(root, 'js/consent.js'), 'utf8');
 
-function boot(storedValue) {
+function boot(storedValue, storageBlocked = false) {
   const listeners = {};
   const storage = new Map(storedValue ? [['rh-analytics-consent', storedValue]] : []);
   let cookie = '_ga=visitor; _ga_ABC123=session; keep=1';
@@ -31,9 +31,9 @@ function boot(storedValue) {
   const window = {
     dataLayer: [],
     localStorage: {
-      getItem(key) { return storage.get(key) ?? null; },
-      setItem(key, value) { storage.set(key, value); },
-      removeItem(key) { storage.delete(key); },
+      getItem(key) { if (storageBlocked) throw Error('Storage blocked'); return storage.get(key) ?? null; },
+      setItem(key, value) { if (storageBlocked) throw Error('Storage blocked'); storage.set(key, value); },
+      removeItem(key) { if (storageBlocked) throw Error('Storage blocked'); storage.delete(key); },
     },
     location: { hostname: 'racinghobbies.net' },
     document,
@@ -82,4 +82,13 @@ test('una decisión rechazada también limpia cookies analíticas al volver', ()
   const rejected = boot('rejected');
   assert.doesNotMatch(rejected.getCookie(), /(?:^|; )_ga(?:_|=)/);
   assert.match(rejected.getCookie(), /keep=1/);
+});
+
+test('la elección actual se respeta aunque el navegador bloquee el almacenamiento', () => {
+  const { window } = boot(null, true);
+  assert.equal(window.RH_CONSENT.get(), null);
+  window.RH_CONSENT.set('granted');
+  assert.equal(window.RH_CONSENT.get(), 'granted');
+  window.RH_CONSENT.set('rejected');
+  assert.equal(window.RH_CONSENT.get(), 'rejected');
 });

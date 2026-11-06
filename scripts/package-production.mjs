@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { generateSeoPages } from './seo-pages.mjs';
 
 const pages = ['index.html', 'catalogo.html', 'contacto.html', 'nosotros.html',
   'servicio-tecnico.html', 'garantia.html', 'privacidad.html', '404.html'];
@@ -61,8 +62,12 @@ export function buildRelease(root, options = {}) {
 
   // Snapshot: HTML y recursos se validan antes de escribir el paquete.
   const snapshot = new Map(files.map(file => [file, fs.readFileSync(regular(root, file))]));
+  // Las fichas se generan con el mismo inventario que el carrito. Se incluyen
+  // en ambos destinos y se validan con los recursos SRI del paquete completo.
+  const generated = generateSeoPages(root);
+  for (const [file, html] of generated) snapshot.set(file, Buffer.from(html));
   let references = 0;
-  for (const page of pages) {
+  for (const page of [...snapshot.keys()].filter(file => file.endsWith('.html'))) {
     const html = snapshot.get(page).toString('utf8');
     for (const [tag] of html.matchAll(/<(?:script|link)\b[^>]*>/gi)) {
       const attr = name => tag.match(new RegExp('\\s' + name + '\\s*=\\s*(["\x27])(.*?)\\1', 'i'))?.[2];
@@ -90,8 +95,10 @@ export function buildRelease(root, options = {}) {
       if (!fs.readFileSync(targetFile).equals(data)) throw Error('Copia incorrecta: ' + relative);
     }
     // Si otra tarea editó el sitio durante la copia, conservar el paquete anterior.
+    const refreshed = generateSeoPages(root);
     for (const [relative, data] of snapshot) {
-      if (!fs.readFileSync(regular(root, relative)).equals(data)) throw Error('El origen cambió durante el empaquetado: ' + relative);
+      const current = refreshed.has(relative) ? Buffer.from(refreshed.get(relative)) : fs.readFileSync(regular(root, relative));
+      if (!current.equals(data)) throw Error('El origen cambió durante el empaquetado: ' + relative);
     }
     // Conservar un entregable con nombre único antes de promover la carpeta
     // compartida .release, que otro flujo de trabajo podría modificar después.

@@ -31,10 +31,10 @@ test('cada página indexable carga el módulo de medición con SRI', () => {
   for (const file of pages) {
     const html = read(file);
     assert.match(html, /<script defer src="js\/analytics\.min\.js\?v=[0-9a-f]+" integrity="sha256-[^"]+"><\/script>/, file);
-    assert.match(html, /<script src="js\/consent\.min\.js\?v=[0-9a-f]+" integrity="sha256-[^"]+"><\/script>/, file);
-    assert.match(html, /<script src="js\/gtm-loader\.min\.js\?v=[0-9a-f]+" integrity="sha256-[^"]+"><\/script>/, file);
+    assert.match(html, /<script defer src="js\/consent\.min\.js\?v=[0-9a-f]+" integrity="sha256-[^"]+"><\/script>/, file);
+    assert.match(html, /<script defer src="js\/gtm-loader\.min\.js\?v=[0-9a-f]+" integrity="sha256-[^"]+"><\/script>/, file);
   }
-  assert.match(read('js/gtm-loader.js'), /GTM-PHWK4J3L/);
+  assert.match(read('js/gtm-loader.js'), /G-JB588FWM54/);
   assert.match(read('scripts/package-production.mjs'), /'_redirects'/);
 });
 
@@ -102,13 +102,32 @@ test('las búsquedas con apariencia de correo o teléfono no salen al dataLayer'
   assert.equal(searches[0].search_term, 'motor crawler');
 });
 
-test('GTM sólo se carga después de aceptar la medición', () => {
+test('una ficha permanente registra la vista del producto real una sola vez', () => {
+  const listeners = {};
+  const product = { id: 'crawler-real', name: 'Crawler real', cat: 'crawlers', price: 710 };
+  const window = { dataLayer: [], RH_CONSENT: { get: () => 'granted' }, location: { origin: 'https://racinghobbies.net', pathname: '/productos/crawler-real' } };
+  const document = {
+    title: 'Crawler real en Ecuador',
+    addEventListener(type, handler) { listeners[type] = handler; },
+    querySelector() { return { dataset: { productId: product.id } }; },
+  };
+  vm.runInNewContext(read('js/analytics.js'), { window, document, RH_PRODUCTS: [product], console });
+  listeners.DOMContentLoaded();
+  const events = window.dataLayer.filter(item => item.event);
+  assert.deepEqual(events.map(item => item.event), ['page_view', 'view_item']);
+  assert.equal(events[1].items[0].item_id, product.id);
+  assert.equal(events[1].value, 710);
+  assert.equal(events[1].page_location, 'https://racinghobbies.net/productos/crawler-real');
+});
+
+test('la etiqueta correcta sólo se carga después de aceptar la medición', () => {
   const source = read('js/gtm-loader.js');
   assert.match(source, /RH_CONSENT\.get\(\) !== ['"]granted['"]/);
   assert.match(source, /addEventListener\(['"]rh:consent['"]/);
   assert.match(source, /event\.detail === ['"]granted['"]/);
   assert.match(source, /send_page_view: false/);
-  assert.match(source, /G-15799391904/);
+  assert.match(source, /G-JB588FWM54/);
+  assert.doesNotMatch(source, /G-15799391904|gtm\.js\?id=/);
 });
 
 test('los eventos aceptados también usan la cola gtag sin duplicar page_view', () => {
@@ -129,7 +148,6 @@ test('los eventos aceptados también usan la cola gtag sin duplicar page_view', 
   vm.runInNewContext(read('js/analytics.js'), { window, document, console });
   window.RH_ANALYTICS.pageView();
   window.RH_ANALYTICS.addToCart({ id: 'crawler-1', name: 'Crawler', price: 120 }, 1);
-  assert.equal(commands.filter(([type]) => type === 'event').length, 1);
-  assert.equal(commands[0][1], 'add_to_cart');
+  assert.deepEqual(commands.filter(([type]) => type === 'event').map(command => command[1]), ['page_view', 'add_to_cart']);
   assert.equal(window.dataLayer.filter(item => item.event === 'page_view').length, 1);
 });

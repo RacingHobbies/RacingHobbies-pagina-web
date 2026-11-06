@@ -1016,7 +1016,7 @@ body:not(.page-home) .sec-dark,
 }
 
 .prod-name,
-.prod-name button {
+.prod-name :is(button, a) {
   color: var(--neo-ice) !important;
   font-family: "Archivo", Arial, sans-serif !important;
   font-weight: 720 !important;
@@ -2366,12 +2366,12 @@ section {
   color: var(--cream);
 }
 
-.tile-name button {
+.tile-name :is(button, a) {
   text-align: left;
   transition: color 0.2s;
 }
 
-.tile-name button:hover {
+.tile-name :is(button, a):hover {
   color: var(--volt);
 }
 
@@ -3022,12 +3022,12 @@ section {
   line-height: 1.3;
 }
 
-.prod-name button {
+.prod-name :is(button, a) {
   text-align: left;
   transition: color 0.2s;
 }
 
-.prod-name button:hover {
+.prod-name :is(button, a):hover {
   color: var(--volt-deep);
 }
 
@@ -5075,7 +5075,7 @@ body::before {
   color: var(--txt-dim2);
 }
 
-.prod-name button:hover {
+.prod-name :is(button, a):hover {
   color: var(--orange);
 }
 
@@ -13032,7 +13032,7 @@ body.rh-intro-complete .hero-proof {
 }
 
 .prod-name,
-.prod-name button,
+.prod-name :is(button, a),
 .prod-price {
   color: var(--neo-ice) !important;
 }

@@ -42,14 +42,16 @@ for source in config data main catalog contact analytics consent gtm-loader fram
   fi
 done
 
-npx --yes "lightningcss-cli@${LIGHTNINGCSS_VERSION}" --minify css/styles.css \
-  -o "${work}/styles.min.css" >/dev/null 2>&1
-if cmp -s "${work}/styles.min.css" css/styles.min.css; then
-  echo "OK        css/styles.min.css"
-else
-  echo "DESFASADO css/styles.min.css no coincide con css/styles.css" >&2
-  stale=1
-fi
+for source in styles typography community-fix home-responsive format-parity cta-cards; do
+  npx --yes "lightningcss-cli@${LIGHTNINGCSS_VERSION}" --minify "css/${source}.css" \
+    -o "${work}/${source}.min.css" >/dev/null 2>&1
+  if cmp -s "${work}/${source}.min.css" "css/${source}.min.css"; then
+    echo "OK        css/${source}.min.css"
+  else
+    echo "DESFASADO css/${source}.min.css no coincide con css/${source}.css" >&2
+    stale=1
+  fi
+done
 
 if (( stale )); then
   echo "ERROR: hay artefactos publicados que no derivan de su fuente. Ejecuta ./scripts/build-production.sh" >&2
