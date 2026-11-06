@@ -18,6 +18,40 @@ const RH_CATEGORIES = Object.freeze([
   { slug: "louis", label: "Monomarca Louis" },
 ]);
 
+// Marcas ya identificadas en los filtros del catálogo. El grupo de reserva
+// permite filtrar los demás productos, pero no declara su fabricante.
+const RH_BRANDS = Object.freeze([
+  {
+    slug: "fms",
+    label: "FMS",
+    terms: ["fms"],
+    ids: ["camel-defender", "camel-discovery"],
+  },
+  { slug: "redcat", label: "Redcat", terms: ["redcat"] },
+  { slug: "tamiya", label: "Tamiya", terms: ["tamiya"] },
+  { slug: "traxxas", label: "Traxxas", terms: ["traxxas"] },
+  {
+    slug: "e-flite",
+    label: "E-flite",
+    terms: ["e-flite"],
+    ids: [
+      "f4-phantom", "edge-as3x", "t28-trojan", "convergence-vtol",
+      "stryker", "night-vapor", "umx-fpv-vapor", "stryker-180",
+    ],
+  },
+  { slug: "blade", label: "Blade", terms: ["blade"] },
+  { slug: "skyrc", label: "SkyRC", terms: ["skyrc"] },
+  { slug: "flysky", label: "FlySky", terms: ["flysky"] },
+  { slug: "hangar-9", label: "Hangar 9", ids: ["ultra-stick", "arf-beast-60"] },
+  { slug: "hobbyzone", label: "HobbyZone", terms: ["hobbyzone"] },
+  { slug: "hexfly", label: "Hexfly", terms: ["hexfly"] },
+  { slug: "powerhobby", label: "Powerhobby", terms: ["powerhobby"] },
+  { slug: "caterpillar", label: "Caterpillar", terms: ["caterpillar"] },
+  { slug: "merlin", label: "Merlin", terms: ["merlin"] },
+  { slug: "racer-edge", label: "Racer Edge", terms: ["racer edge"] },
+  { slug: "otras", label: "Otras marcas", fallback: true },
+]);
+
 // Especificaciones verificadas por referencia; fuentes en sources/louis-specifications.json.
 const RH_LOUIS_PRODUCTS = Object.freeze([
   {"id":"louis-lnba205","code":"LNBA205","name":"Drive Shaft And Spur Gear Hub (For Gear Diff)","cat":"louis","price":8,"tag":null,"img":"assets/img/louis/LNBA205.webp","desc":"Drive Shaft And Spur Gear Hub (For Gear Diff)","specs":["Código: LNBA205","Monomarca Louis","Tipo: eje de transmisión y soporte de corona","Material: aluminio","Aplicación: diferencial de engranajes","Modelos listados por Louise RC: LMX, LRX, LTX"]},
