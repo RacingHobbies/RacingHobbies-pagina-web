@@ -27,7 +27,7 @@ const introductions = {
 
 export function catalogData(root) {
   const context = vm.createContext({});
-  vm.runInContext(fs.readFileSync(root + '/js/data.js', 'utf8') + '\nthis.catalog = { products: RH_PRODUCTS, categories: RH_CATEGORIES };', context, { timeout: 2000 });
+  vm.runInContext(fs.readFileSync(root + '/js/data.js', 'utf8') + '\nthis.catalog = { products: RH_PRODUCTS, categories: RH_CATEGORIES, brands: typeof RH_BRANDS === "undefined" ? [] : RH_BRANDS };', context, { timeout: 2000 });
   const data = JSON.parse(JSON.stringify(context.catalog));
   const ids = new Set();
   for (const category of data.categories) {
@@ -37,6 +37,11 @@ export function catalogData(root) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(product.id) || ids.has(product.id)) throw Error('Identificador de producto inválido: ' + product.id);
     if (!data.categories.some(category => category.slug === product.cat)) throw Error('Categoría desconocida: ' + product.id);
     if (!/^assets\/img\/[a-zA-Z0-9_./-]+\.(?:webp|png|jpe?g)$/.test(product.img) || product.img.includes('..') || !fs.existsSync(root + '/' + product.img)) throw Error('Imagen inválida: ' + product.id);
+    // Reutiliza la clasificación real del catálogo. «Otras marcas» es un
+    // filtro de reserva, nunca una marca para el marcado del producto.
+    const name = String(product.name).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
+    const brand = data.brands.find(brand => !brand.fallback && (brand.ids?.includes(product.id) || brand.terms?.some(term => name.includes(term))));
+    if (brand) product.brand = brand.label;
     ids.add(product.id);
   }
   return data;
@@ -99,11 +104,12 @@ export function generateSeoPages(root) {
   for (const product of products) {
     const category = categoryFor(product);
     const soldOut = product.availability === 'agotado';
+    const brand = product.brand ? ` · <span itemprop="brand" itemscope itemtype="https://schema.org/Brand"><span itemprop="name">${escape(product.brand)}</span></span>` : '';
     const offer = priced(product) ? `<div itemprop="offers" itemscope itemtype="https://schema.org/Offer"><meta itemprop="priceCurrency" content="USD"><meta itemprop="price" content="${product.price}"><link itemprop="url" href="${origin}${productPath(product)}">${soldOut ? '<link itemprop="availability" href="https://schema.org/OutOfStock">' : ''}<p class="seo-price">${escape(money(product.price))} USD</p></div>` : '<p class="seo-price">Consultar precio</p>';
     const message = 'Hola, quisiera consultar ' + product.name + (product.code ? ' (código ' + product.code + ')' : '') + '.';
     const related = products.filter(other => other.cat === product.cat && other.id !== product.id).slice(0, 3);
     const description = `${product.name} en Racing Hobbies, Quito, Ecuador. ${priced(product) ? money(product.price) + ' USD. ' : ''}${product.desc}`.slice(0, 300);
-    const main = `<section class="seo-product-section"><div class="container">${crumbs(category, product)}<article class="seo-product" data-product-id="${product.id}" itemscope itemtype="https://schema.org/Product"><div class="seo-product-image" data-image-surface="${escape(product.imageSurface)}"><img itemprop="image" src="/${product.img}" alt="${escape(product.name)}" width="900" height="900" fetchpriority="high" decoding="async"></div><div class="seo-product-copy"><p class="kicker"><a href="${categoryPath(category)}">${escape(category.label)}</a></p><h1 itemprop="name">${escape(product.name)}</h1>${product.code ? `<p>Código: <span itemprop="sku">${escape(product.code)}</span></p>` : ''}<p itemprop="description">${escape(product.desc)}</p>${offer}<p>${soldOut ? 'Producto agotado. Consulta alternativas o disponibilidad futura.' : 'Confirma disponibilidad y entrega con la tienda antes de realizar el pedido.'}</p><h2>Especificaciones</h2><ul>${(product.specs || []).map(spec => `<li>${escape(spec)}</li>`).join('')}</ul><div class="seo-product-actions">${priced(product) && !soldOut ? `<button class="btn btn-volt" type="button" data-add="${product.id}">Agregar al carrito</button>` : ''}<a class="btn btn-line" href="https://wa.me/593989019836?text=${escape(encodeURIComponent(message))}" target="_blank" rel="noopener noreferrer">Consultar por WhatsApp</a></div><p>Atención en <a href="/contacto">Av. Eloy Alfaro N40-413 y Granados, Quito</a>. Consulta <a href="/servicio-tecnico">servicio técnico RC</a> y <a href="/garantia">condiciones de garantía</a>.</p></div></article></div></section>${related.length ? `<section class="catalog-section"><div class="container"><h2>También en ${escape(category.label)}</h2><div class="prod-grid">${related.map(card).join('')}</div></div></section>` : ''}`;
+    const main = `<section class="seo-product-section"><div class="container">${crumbs(category, product)}<article class="seo-product" data-product-id="${product.id}" itemscope itemtype="https://schema.org/Product"><div class="seo-product-image" data-image-surface="${escape(product.imageSurface)}"><img itemprop="image" src="/${product.img}" alt="${escape(product.name)}" width="900" height="900" fetchpriority="high" decoding="async"></div><div class="seo-product-copy"><p class="kicker"><a href="${categoryPath(category)}">${escape(category.label)}</a>${brand}</p><h1 itemprop="name">${escape(product.name)}</h1>${product.code ? `<p>Código: <span itemprop="sku">${escape(product.code)}</span></p>` : ''}<p itemprop="description">${escape(product.desc)}</p>${offer}<p>${soldOut ? 'Producto agotado. Consulta alternativas o disponibilidad futura.' : 'Confirma disponibilidad y entrega con la tienda antes de realizar el pedido.'}</p><h2>Especificaciones</h2><ul>${(product.specs || []).map(spec => `<li>${escape(spec)}</li>`).join('')}</ul><div class="seo-product-actions">${priced(product) && !soldOut ? `<button class="btn btn-volt" type="button" data-add="${product.id}">Agregar al carrito</button>` : ''}<a class="btn btn-line" href="https://wa.me/593989019836?text=${escape(encodeURIComponent(message))}" target="_blank" rel="noopener noreferrer">Consultar por WhatsApp</a></div><p>Atención en <a href="/contacto">Av. Eloy Alfaro N40-413 y Granados, Quito</a>. Consulta <a href="/servicio-tecnico">servicio técnico RC</a> y <a href="/garantia">condiciones de garantía</a>.</p></div></article></div></section>${related.length ? `<section class="catalog-section"><div class="container"><h2>También en ${escape(category.label)}</h2><div class="prod-grid">${related.map(card).join('')}</div></div></section>` : ''}`;
     output.set('productos/' + product.id + '.html', page(productPath(product), product.name + ' en Ecuador | Racing Hobbies', description, main, product.img));
   }
   const baseSitemap = fs.readFileSync(root + '/sitemap.xml', 'utf8');
