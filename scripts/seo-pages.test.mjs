@@ -54,10 +54,33 @@ test('las categorías enlazan inventario real y todos los recursos de páginas a
   }
 });
 
+test('la guía de carros enlaza fichas reales y se puede encontrar desde el catálogo sin JavaScript', () => {
+  const route = '/carros-a-control-remoto';
+  const html = pages.get(route.slice(1) + '.html');
+  assert.match(html, /<h1>Carros a control remoto en Ecuador<\/h1>/);
+  assert.equal((html.match(/<h1\b/g) || []).length, 1);
+  assert.ok(html.includes(`<link rel="canonical" href="https://racinghobbies.net${route}">`));
+  assert.ok(pages.get('catalogo.html').includes(`href="${route}"`));
+  assert.ok(pages.get('sitemap.xml').includes(`<loc>https://racinghobbies.net${route}</loc>`));
+  for (const slug of ['crawlers', 'pista', 'monster']) {
+    assert.ok(html.includes(`href="/categorias/${slug}"`));
+    assert.ok(pages.get(`categorias/${slug}.html`).includes(`href="${route}"`));
+  }
+  const links = [...html.matchAll(/href="(\/productos\/[^"\s]+)"/g)].map(([, href]) => href);
+  assert.ok(links.length > 0);
+  assert.equal(new Set(links).size, links.length);
+  for (const href of links) {
+    const product = products.find(item => href === `/productos/${item.id}`);
+    assert.ok(product && product.availability !== 'agotado', href);
+    assert.ok(pages.has(href.slice(1) + '.html'), href);
+  }
+  assert.doesNotMatch(html, /schema\.org\/(?:InStock|Offer|AggregateRating)/);
+});
+
 test('el sitemap no tiene filtros, duplicados ni URLs de prueba y la generación es determinista', () => {
   const sitemap = pages.get('sitemap.xml');
   const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]);
-  assert.equal(urls.length, products.length + categories.length + 7);
+  assert.equal(urls.length, products.length + categories.length + 8);
   assert.equal(new Set(urls).size, urls.length);
   assert.ok(urls.every(url => url.startsWith('https://racinghobbies.net/') && !/[?#]/.test(url)));
   assert.deepEqual([...generateSeoPages(root)], [...pages]);

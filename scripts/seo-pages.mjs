@@ -9,6 +9,25 @@ const money = value => new Intl.NumberFormat('es-EC', { style: 'currency', curre
 const productPath = product => '/productos/' + product.id;
 const categoryPath = category => '/categorias/' + category.slug;
 
+const carGuidePath = '/carros-a-control-remoto';
+const carGuideGroups = {
+  crawlers: {
+    title: 'Rocas y obstáculos',
+    advice: 'Si te interesa subir pendientes y pasar sobre piedras o raíces, busca un crawler. En un recorrido técnico importa el control a baja velocidad. Empieza por una escala compacta si tienes poco espacio para armar obstáculos.',
+    examples: ['redcat-ascent-118', 'everest-gen7'],
+  },
+  pista: {
+    title: 'Asfalto, pista y rally',
+    advice: 'Si quieres trazar curvas y dar vueltas en un circuito, empieza por un auto de pista. Para rally, comprueba qué superficies admite el modelo. Si vas a correr en una pista, pregunta qué escalas y configuraciones acepta.',
+    examples: ['lancia-delta', 'golf-gti'],
+  },
+  monster: {
+    title: 'Tierra, grava y terreno irregular',
+    advice: 'Un monster truck es una opción para rodar por suelo irregular. Fíjate en el tamaño de las ruedas y el espacio libre bajo el chasis. Si prefieres un eléctrico, revisa qué batería y cargador requiere antes de comparar precios.',
+    examples: ['volcano-16', 'mt18'],
+  },
+};
+
 // Descripciones de ayuda sobre las categorías reales; no crean inventario,
 // sucursales, garantías, edades recomendadas ni prestaciones de producto.
 const introductions = {
@@ -83,17 +102,66 @@ export function generateSeoPages(root) {
   function card(product) {
     return `<article class="prod-card" data-image-surface="${escape(product.imageSurface)}"><a class="prod-media" href="${productPath(product)}" aria-label="Ver ${escape(product.name)}"><img src="/${product.img}" alt="${escape(product.name)}" width="640" height="640" loading="lazy" decoding="async"></a><div class="prod-body"><p class="prod-cat">${escape(categoryFor(product).label)}</p><h3 class="prod-name"><a href="${productPath(product)}">${escape(product.name)}</a></h3><p>${escape(product.desc)}</p><div class="prod-foot"><span class="prod-price">${priced(product) ? escape(money(product.price)) + ' USD' : 'Consultar precio'}</span><a class="btn btn-line" href="${productPath(product)}">Ver ficha</a></div>${product.availability === 'agotado' ? '<p>Agotado</p>' : ''}</div></article>`;
   }
-  const categoryLinks = `<nav class="seo-categories" aria-label="Explorar categorías RC">${categories.map(category => `<a href="${categoryPath(category)}">${escape(category.label)}</a>`).join('')}</nav>`;
+  const carCategories = categories.filter(category => Object.hasOwn(carGuideGroups, category.slug)
+    && products.some(product => product.cat === category.slug));
+  const categoryLinks = categories.map(category => `<a href="${categoryPath(category)}">${escape(category.label)}</a>`).join('');
+  const carGuideLink = carCategories.length ? `<a href="${carGuidePath}">Carros a control remoto</a>` : '';
+  function categoryNavigation(showCarGuide) {
+    return `<nav class="seo-categories" aria-label="Explorar categorías RC">${showCarGuide ? carGuideLink : ''}${categoryLinks}</nav>`;
+  }
+
+  if (carCategories.length) {
+    const title = 'Carros a control remoto en Ecuador';
+    const description = 'Compara carros RC para pista, roca y tierra. Explora modelos, escalas y precios del catálogo de Racing Hobbies y consulta disponibilidad en Quito.';
+    const choices = carCategories.map(category => {
+      const group = carGuideGroups[category.slug];
+      const examples = group.examples.map(id => products.find(product => product.id === id && product.cat === category.slug))
+        .filter(product => product && product.availability !== 'agotado');
+      const list = examples.map(product => `<li><a href="${productPath(product)}">${escape(product.name)}</a> · ${priced(product) ? `${escape(money(product.price))} USD` : 'Consultar precio'}</li>`).join('');
+      return `<article class="prod-card">
+        <div class="prod-body seo-product-copy">
+          <p class="prod-cat">${escape(category.label)}</p>
+          <h3 class="prod-name">${escape(group.title)}</h3>
+          <p>${escape(group.advice)}</p>
+          ${list ? `<ul>${list}</ul>` : ''}
+          <a class="btn btn-line" href="${categoryPath(category)}">Ver ${escape(category.label)}</a>
+        </div>
+      </article>`;
+    }).join('\n');
+    const main = `<section class="page-hero"><div class="container">
+      ${crumbs()}
+      <p class="kicker">Racing Hobbies · Quito, Ecuador</p>
+      <h1>${escape(title)}</h1>
+      <p>Elige según dónde quieras manejar: una pista de asfalto, un recorrido de rocas o un terreno de tierra. Compara ejemplos del catálogo y revisa qué necesitas para ponerlos a rodar.</p>
+      <a class="btn btn-line" href="#tipos">Comparar tipos de carros RC</a>
+    </div></section>
+    <section class="catalog-section" id="tipos"><div class="container">
+      <h2>¿En qué terreno quieres manejar?</h2>
+      <div class="prod-grid">${choices}</div>
+    </div></section>
+    <section class="catalog-section"><div class="container seo-product-copy">
+      <h2>Qué revisar antes de comprar tu primer carro RC</h2>
+      <ul>
+        <li><strong>Escala y espacio.</strong> Compara las medidas del carro y el lugar donde vas a usarlo. Si buscas un regalo, revisa también la edad recomendada y la supervisión que indica el fabricante.</li>
+        <li><strong>Montado o para armar.</strong> Un RTR viene montado. Verifica qué trae la caja y si necesitas batería, cargador o pilas para la emisora. Si eliges un kit, pide la lista de componentes que faltan antes de calcular el costo total.</li>
+        <li><strong>Repuestos y mantenimiento.</strong> Pregunta por las piezas compatibles con el chasis y la escala que elegiste. Si ya tienes un modelo, lleva la referencia al <a href="/servicio-tecnico">taller de servicio técnico RC</a>.</li>
+      </ul>
+      <p>Consulta las existencias con la tienda de Quito. Si estás en otra ciudad de Ecuador, pregunta por las opciones de entrega para el modelo que te interesa.</p>
+      <div class="seo-product-actions"><a class="btn btn-volt" href="/contacto">Consultar en la tienda</a><a class="btn btn-line" href="/catalogo">Ver todo el catálogo</a></div>
+    </div></section>`;
+    output.set(carGuidePath.slice(1) + '.html', page(carGuidePath, title + ' | Racing Hobbies', description, main));
+  }
+
   // El HTML servido contiene inventario real incluso antes de ejecutar JS.
   // El catálogo interactivo reemplaza esta rejilla al iniciar sus filtros.
   output.set('catalogo.html', source.replace('<div class="prod-grid" id="catalog-grid"></div>', `<div class="prod-grid" id="catalog-grid">${products.map(card).join('\n')}</div>`)
-    .replace('<div class="toolbar">', `${categoryLinks}\n        <div class="toolbar">`)
+    .replace('<div class="toolbar">', `${categoryNavigation(true)}\n        <div class="toolbar">`)
     .replace('</head>', `  ${cssLink}\n</head>`));
   for (const category of categories) {
     const items = products.filter(product => product.cat === category.slug);
     if (!items.length) continue;
     const [title, description] = introductions[category.slug];
-    const main = `<section class="page-hero"><div class="container">${crumbs(category)}<p class="kicker">Racing Hobbies · Quito, Ecuador</p><h1>${escape(title)}</h1><p>${escape(description)}</p><a class="btn btn-line" href="/catalogo?cat=${category.slug}">Filtrar y comparar</a></div></section><section class="catalog-section"><div class="container"><h2>${escape(category.label)} en el catálogo</h2><div class="prod-grid">${items.map(card).join('\n')}</div>${categoryLinks}</div></section>`;
+    const main = `<section class="page-hero"><div class="container">${crumbs(category)}<p class="kicker">Racing Hobbies · Quito, Ecuador</p><h1>${escape(title)}</h1><p>${escape(description)}</p><a class="btn btn-line" href="/catalogo?cat=${category.slug}">Filtrar y comparar</a></div></section><section class="catalog-section"><div class="container"><h2>${escape(category.label)} en el catálogo</h2><div class="prod-grid">${items.map(card).join('\n')}</div>${categoryNavigation(Object.hasOwn(carGuideGroups, category.slug))}</div></section>`;
     output.set('categorias/' + category.slug + '.html', page(categoryPath(category), title + ' | Racing Hobbies', description, main));
   }
   for (const product of products) {
