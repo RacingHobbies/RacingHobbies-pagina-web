@@ -82,6 +82,20 @@ test('las fichas comparten la foto del producto sin heredar formato o dimensione
   assert.match(catalog, /property="og:image:width" content="1024"/);
 });
 
+test('las fotos de catálogo y ficha ofrecen variantes reales sin reducir el original', () => {
+  const tmaxx = pages.get('productos/tmaxx.html').match(/<img itemprop="image"[^>]*>/)?.[0];
+  assert.match(tmaxx, /src="\/assets\/img\/tmaxx\.webp"/);
+  assert.match(tmaxx, /srcset="\/assets\/img\/tmaxx-480\.webp 480w, \/assets\/img\/tmaxx\.webp 600w"/);
+  assert.match(tmaxx, /sizes="[^"\n]+"[^>]*fetchpriority="high"/);
+  const catalog = pages.get('catalogo.html');
+  const card = catalog.match(/<img src="\/assets\/img\/camel-defender\.webp"[^>]*>/)?.[0];
+  assert.match(card, /srcset="\/assets\/img\/camel-defender-480\.webp 480w, \/assets\/img\/camel-defender-640\.webp 640w,/);
+  assert.match(card, /loading="lazy"/);
+  const jpeg = pages.get('productos/skyrc-d260.html').match(/<img itemprop="image"[^>]*>/)?.[0];
+  assert.ok(jpeg);
+  assert.doesNotMatch(jpeg, /srcset=/);
+});
+
 test('las imágenes dinámicas se resuelven desde rutas anidadas sin admitir URLs externas ni traversal', () => {
   const source = fs.readFileSync(root + '/js/main.js', 'utf8');
   const helpers = source.slice(source.indexOf('  function isProductAsset('), source.indexOf('  function productGalleryAssets('));

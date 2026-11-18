@@ -9,6 +9,33 @@ const money = value => new Intl.NumberFormat('es-EC', { style: 'currency', curre
 const productPath = product => '/productos/' + product.id;
 const categoryPath = category => '/categorias/' + category.slug;
 
+// El descriptor `w` debe coincidir con el ancho de la imagen, no con el
+// nombre del archivo ni con el tamaño reservado por la plantilla HTML.
+function webpWidth(file) {
+  const bytes = fs.readFileSync(file);
+  if (bytes.length < 30 || bytes.toString('ascii', 0, 4) !== 'RIFF'
+    || bytes.toString('ascii', 8, 12) !== 'WEBP') return 0;
+  const chunk = bytes.toString('ascii', 12, 16);
+  if (chunk === 'VP8X') return bytes.readUIntLE(24, 3) + 1;
+  if (chunk === 'VP8L' && bytes[20] === 0x2f) return (bytes.readUInt32LE(21) & 0x3fff) + 1;
+  if (chunk === 'VP8 ' && bytes.subarray(23, 26).equals(Buffer.from([0x9d, 0x01, 0x2a]))) {
+    return bytes.readUInt16LE(26) & 0x3fff;
+  }
+  return 0;
+}
+
+function productImageSources(root, asset) {
+  if (!asset.endsWith('.webp')) return '';
+  const width = webpWidth(`${root}/${asset}`);
+  const variants = [480, 640].flatMap(size => {
+    if (size >= width) return [];
+    const candidate = asset.replace(/\.webp$/, `-${size}.webp`);
+    const file = `${root}/${candidate}`;
+    return fs.existsSync(file) && webpWidth(file) === size ? [`/${candidate} ${size}w`] : [];
+  });
+  return variants.length ? [...variants, `/${asset} ${width}w`].join(', ') : '';
+}
+
 // Descripciones de ayuda sobre las categorías reales; no crean inventario,
 // sucursales, garantías, edades recomendadas ni prestaciones de producto.
 const introductions = {
@@ -46,6 +73,7 @@ export function generateSeoPages(root) {
   const { products, categories } = catalogData(root);
   const source = fs.readFileSync(root + '/catalogo.html', 'utf8');
   const output = new Map();
+  const imageSources = new Map(products.map(product => [product.img, productImageSources(root, product.img)]));
   const categoryFor = product => categories.find(category => category.slug === product.cat);
   const stylesheet = fs.readFileSync(root + '/css/seo.css');
   const cssHash = createHash('sha256').update(stylesheet).digest('base64');
@@ -80,8 +108,13 @@ export function generateSeoPages(root) {
     if (product) items.push({ name: product.name, path: productPath(product) });
     return `<nav class="seo-breadcrumbs" aria-label="Ruta de navegación"><ol itemscope itemtype="https://schema.org/BreadcrumbList">${items.map((item, index) => `<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem"><a itemprop="item" href="${item.path}"><span itemprop="name">${escape(item.name)}</span></a><meta itemprop="position" content="${index + 1}"></li>`).join('')}</ol></nav>`;
   }
+  function responsiveImage(product, sizes) {
+    const srcset = imageSources.get(product.img);
+    return srcset ? ` srcset="${srcset}" sizes="${sizes}"` : '';
+  }
   function card(product) {
-    return `<article class="prod-card" data-image-surface="${escape(product.imageSurface)}"><a class="prod-media" href="${productPath(product)}" aria-label="Ver ${escape(product.name)}"><img src="/${product.img}" alt="${escape(product.name)}" width="640" height="640" loading="lazy" decoding="async"></a><div class="prod-body"><p class="prod-cat">${escape(categoryFor(product).label)}</p><h3 class="prod-name"><a href="${productPath(product)}">${escape(product.name)}</a></h3><p>${escape(product.desc)}</p><div class="prod-foot"><span class="prod-price">${priced(product) ? escape(money(product.price)) + ' USD' : 'Consultar precio'}</span><a class="btn btn-line" href="${productPath(product)}">Ver ficha</a></div>${product.availability === 'agotado' ? '<p>Agotado</p>' : ''}</div></article>`;
+    const sizes = 'auto, (max-width: 540px) 90vw, 320px';
+    return `<article class="prod-card" data-image-surface="${escape(product.imageSurface)}"><a class="prod-media" href="${productPath(product)}" aria-label="Ver ${escape(product.name)}"><img src="/${product.img}"${responsiveImage(product, sizes)} alt="${escape(product.name)}" width="640" height="640" loading="lazy" decoding="async"></a><div class="prod-body"><p class="prod-cat">${escape(categoryFor(product).label)}</p><h3 class="prod-name"><a href="${productPath(product)}">${escape(product.name)}</a></h3><p>${escape(product.desc)}</p><div class="prod-foot"><span class="prod-price">${priced(product) ? escape(money(product.price)) + ' USD' : 'Consultar precio'}</span><a class="btn btn-line" href="${productPath(product)}">Ver ficha</a></div>${product.availability === 'agotado' ? '<p>Agotado</p>' : ''}</div></article>`;
   }
   const categoryLinks = `<nav class="seo-categories" aria-label="Explorar categorías RC">${categories.map(category => `<a href="${categoryPath(category)}">${escape(category.label)}</a>`).join('')}</nav>`;
   // El HTML servido contiene inventario real incluso antes de ejecutar JS.
@@ -103,7 +136,8 @@ export function generateSeoPages(root) {
     const message = 'Hola, quisiera consultar ' + product.name + (product.code ? ' (código ' + product.code + ')' : '') + '.';
     const related = products.filter(other => other.cat === product.cat && other.id !== product.id).slice(0, 3);
     const description = `${product.name} en Racing Hobbies, Quito, Ecuador. ${priced(product) ? money(product.price) + ' USD. ' : ''}${product.desc}`.slice(0, 300);
-    const main = `<section class="seo-product-section"><div class="container">${crumbs(category, product)}<article class="seo-product" data-product-id="${product.id}" itemscope itemtype="https://schema.org/Product"><div class="seo-product-image" data-image-surface="${escape(product.imageSurface)}"><img itemprop="image" src="/${product.img}" alt="${escape(product.name)}" width="900" height="900" fetchpriority="high" decoding="async"></div><div class="seo-product-copy"><p class="kicker"><a href="${categoryPath(category)}">${escape(category.label)}</a></p><h1 itemprop="name">${escape(product.name)}</h1>${product.code ? `<p>Código: <span itemprop="sku">${escape(product.code)}</span></p>` : ''}<p itemprop="description">${escape(product.desc)}</p>${offer}<p>${soldOut ? 'Producto agotado. Consulta alternativas o disponibilidad futura.' : 'Confirma disponibilidad y entrega con la tienda antes de realizar el pedido.'}</p><h2>Especificaciones</h2><ul>${(product.specs || []).map(spec => `<li>${escape(spec)}</li>`).join('')}</ul><div class="seo-product-actions">${priced(product) && !soldOut ? `<button class="btn btn-volt" type="button" data-add="${product.id}">Agregar al carrito</button>` : ''}<a class="btn btn-line" href="https://wa.me/593989019836?text=${escape(encodeURIComponent(message))}" target="_blank" rel="noopener noreferrer">Consultar por WhatsApp</a></div><p>Atención en <a href="/contacto">Av. Eloy Alfaro N40-413 y Granados, Quito</a>. Consulta <a href="/servicio-tecnico">servicio técnico RC</a> y <a href="/garantia">condiciones de garantía</a>.</p></div></article></div></section>${related.length ? `<section class="catalog-section"><div class="container"><h2>También en ${escape(category.label)}</h2><div class="prod-grid">${related.map(card).join('')}</div></div></section>` : ''}`;
+    const imageSizes = '(max-width: 720px) calc(100vw - 28px), (max-width: 1368px) 46vw, 628px';
+    const main = `<section class="seo-product-section"><div class="container">${crumbs(category, product)}<article class="seo-product" data-product-id="${product.id}" itemscope itemtype="https://schema.org/Product"><div class="seo-product-image" data-image-surface="${escape(product.imageSurface)}"><img itemprop="image" src="/${product.img}"${responsiveImage(product, imageSizes)} alt="${escape(product.name)}" width="900" height="900" fetchpriority="high" decoding="async"></div><div class="seo-product-copy"><p class="kicker"><a href="${categoryPath(category)}">${escape(category.label)}</a></p><h1 itemprop="name">${escape(product.name)}</h1>${product.code ? `<p>Código: <span itemprop="sku">${escape(product.code)}</span></p>` : ''}<p itemprop="description">${escape(product.desc)}</p>${offer}<p>${soldOut ? 'Producto agotado. Consulta alternativas o disponibilidad futura.' : 'Confirma disponibilidad y entrega con la tienda antes de realizar el pedido.'}</p><h2>Especificaciones</h2><ul>${(product.specs || []).map(spec => `<li>${escape(spec)}</li>`).join('')}</ul><div class="seo-product-actions">${priced(product) && !soldOut ? `<button class="btn btn-volt" type="button" data-add="${product.id}">Agregar al carrito</button>` : ''}<a class="btn btn-line" href="https://wa.me/593989019836?text=${escape(encodeURIComponent(message))}" target="_blank" rel="noopener noreferrer">Consultar por WhatsApp</a></div><p>Atención en <a href="/contacto">Av. Eloy Alfaro N40-413 y Granados, Quito</a>. Consulta <a href="/servicio-tecnico">servicio técnico RC</a> y <a href="/garantia">condiciones de garantía</a>.</p></div></article></div></section>${related.length ? `<section class="catalog-section"><div class="container"><h2>También en ${escape(category.label)}</h2><div class="prod-grid">${related.map(card).join('')}</div></div></section>` : ''}`;
     output.set('productos/' + product.id + '.html', page(productPath(product), product.name + ' en Ecuador | Racing Hobbies', description, main, product.img));
   }
   const baseSitemap = fs.readFileSync(root + '/sitemap.xml', 'utf8');
